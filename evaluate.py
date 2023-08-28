@@ -1,6 +1,7 @@
 """
 This is what adds all the errors, warnings, etc. that you see in the table. More complex evaluations are done in separate files and imported here.
 """
+import datetime
 import json
 import os
 import re
@@ -41,6 +42,9 @@ def add_good_sign(key, message):
 		evals[key]["good_signs"] = []
 	print(f"GOOD SIGN in {key}: {message}")
 	evals[key]["good_signs"].append(message)
+
+# add timestamp
+add_info("_general_", f"This analysis was generated on {datetime.datetime.now().strftime('%B %d, %Y at %I:%M %p')}.")
 
 # check for untranslated strings
 for key in original.keys():
@@ -166,6 +170,20 @@ for key in pending.keys():
 	matches = color_pattern.finditer(pending[key])
 	for match in matches:
 		add_error(key, f"The color \"{match.group(1)}\" was not translated.")
+
+# add info about the number of errors and warnings
+error_count = 0
+warning_count = 0
+no_issues_count = 0
+for key in evals.keys():
+	if "errors" in evals[key]:
+		error_count += len(evals[key]["errors"])
+	if "warnings" in evals[key]:
+		warning_count += len(evals[key]["warnings"])
+	if "errors" not in evals[key] and "warnings" not in evals[key]:
+		no_issues_count += 1
+add_info("_general_", f"{error_count} errors and {warning_count} warnings were found in total.")
+add_info("_general_", f"{no_issues_count} out of {len(pending)} strings ({no_issues_count / len(pending) * 100:.2f}%) have no issues.")
 
 # save the results
 if not os.path.exists('cache'):
