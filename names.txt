@@ -1,0 +1,34 @@
+Alexander
+AltManager
+AntiCheat
+API
+ASCII
+AuthMe
+enforce-secure-profile
+ESP
+Fabric
+.follow
+Google
+GUI
+.help toomanyhax
+Mineplex
+MobArena
+Mojang
+NBT
+/ncp version
+No Chat Reports
+NoCheat+
+Nocom
+oobabooga
+OpenAI
+OptiFine
+Paper
+Prophunt
+.protect
+.rv
+Spigot
+.toomanyhax
+TPA
+VanillaSpoof
+.Wurst encryption
+Wurst

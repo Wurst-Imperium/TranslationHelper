@@ -1,0 +1,7 @@
+googletrans==3.1.0a0
+openai==0.27.8
+pandas==1.5.3
+pycountry==22.3.5
+python-dotenv==1.0.0
+Requests==2.31.0
+tqdm==4.64.1
