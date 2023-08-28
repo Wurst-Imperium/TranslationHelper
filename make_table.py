@@ -4,7 +4,7 @@ Creates the table.html file and requests all the necessary data from the other s
 import re
 import pandas as pd
 import html
-from langfiles import original, pending
+from langfiles import original, pending, langcode_short
 from google_translate import forward, reversed
 from evaluate import evals
 from gpt_analyze_meaning import meaning_analysis
@@ -75,6 +75,7 @@ for key in original.keys():
 html_table = df.to_html(index=False, justify='center', escape=False)
 html_table += f"<div class='general-evaluation'>{format_evaluation('_general_')}</div>"
 html_table += "<div class='progress-bar'></div>"
+html_table += f"<meta lang='{langcode_short}'>"
 
 css = """
 <style>
@@ -163,6 +164,10 @@ div.progress-bar {
 div.progress-bar.complete {
 	background-color: #0f0;
 }
+.context-menu-item {
+	position: absolute;
+	background-color: #fff;
+}
 </style>
 """
 
@@ -216,6 +221,57 @@ document.addEventListener('keydown', (event) => {
 		moveSelectionToRow((selectedRow + 1) % rows.length);
 	else if (event.key === 'ArrowUp')
 		moveSelectionToRow((selectedRow - 1 + rows.length) % rows.length);
+});
+
+const lang = document.querySelector('meta[lang]').getAttribute('lang');
+
+// Add context menu entries for Google Translate and DeepL
+document.addEventListener('contextmenu', (event) => {
+	const selectedText = window.getSelection().toString();
+	if (selectedText !== '') {
+		const encodedText = encodeURIComponent(selectedText);
+		const googleurl = `https://translate.google.com/?op=translate&sl=${lang}&tl=en&text=${encodedText}`;
+		const deepLurl = `https://www.deepl.com/translator#${lang}/en/${encodedText}`;
+		const googleItem = document.createElement('a');
+		googleItem.classList.add('context-menu-item');
+		googleItem.href = googleurl;
+		googleItem.target = '_blank';
+		googleItem.innerText = 'View in Google Translate (G)';
+		googleItem.style.top = `${event.pageY-40}px`;
+		googleItem.style.left = `${event.pageX}px`;
+		document.body.appendChild(googleItem);
+		const deepLItem = document.createElement('a');
+		deepLItem.classList.add('context-menu-item');
+		deepLItem.href = deepLurl;
+		deepLItem.target = '_blank';
+		deepLItem.innerText = 'View in DeepL (D)';
+		deepLItem.style.top = `${event.pageY-20}px`;
+		deepLItem.style.left = `${event.pageX}px`;
+		document.body.appendChild(deepLItem);
+	}
+});
+
+// Remove the context menu entries when the menu is closed
+document.addEventListener('click', () => {
+	const menuItem = document.querySelectorAll('a.context-menu-item');
+	menuItem.forEach((item) => {
+		item.parentNode.removeChild(item);
+	});
+});
+
+// Add keyboard shortcuts for the context menu entries
+document.addEventListener('keydown', (event) => {
+	const selectedText = window.getSelection().toString();
+	if (selectedText !== '') {
+		const encodedText = encodeURIComponent(selectedText);
+		if (event.key === 'g') {
+			const googleurl = `https://translate.google.com/?op=translate&sl=${lang}&tl=en&text=${encodedText}`;
+			window.open(googleurl, '_blank');
+		} else if (event.key === 'd') {
+			const deepLurl = `https://www.deepl.com/translator#${lang}/en/${encodedText}`;
+			window.open(deepLurl, '_blank');
+		}
+	}
 });
 </script>
 """
