@@ -2,6 +2,7 @@
 This is what adds all the errors, warnings, etc. that you see in the table. More complex evaluations are done in separate files and imported here.
 """
 import datetime
+import html
 import json
 import os
 import re
@@ -99,11 +100,11 @@ for key in pending.keys():
 			diff_string = "Supposed differences: "
 			diff_string += ", ".join(f'"{diff["difference"]}"' for diff in meaning_analysis[key]['differences'])
 			diff_string += ". ChatGPT thinks none of these differences have any impact on the meaning, but still concluded that the meaning is different. ¯\_(ツ)_/¯"
-			add_info(key, f"ChatGPT thinks the reverse translation has a <abbr title='{diff_string}'>different meaning</abbr> than the original, but its reasoning makes no sense.")
+			add_info(key, f"ChatGPT thinks the reverse translation has a <abbr title='{html.escape(diff_string)}'>different meaning</abbr> than the original, but its reasoning makes no sense.")
 		else:
 			diff_string = "Supposed differences: "
 			diff_string += ", ".join(f'"{diff["difference"]}" ({diff["impact"].lower()} impact)' for diff in differences)
-			add_warning(key, f"ChatGPT thinks the reverse translation has a <abbr title='{diff_string}'>different meaning</abbr> than the original.")
+			add_warning(key, f"ChatGPT thinks the reverse translation has a <abbr title='{html.escape(diff_string)}'>different meaning</abbr> than the original.")
 
 # check extracted Minecraft names
 for key in pending.keys():
