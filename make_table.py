@@ -79,11 +79,13 @@ html_table += f"<meta lang='{langcode_short}'>"
 
 css = """
 <style>
+body {
+	font-family: Arial, sans-serif;
+	font-size: 14px;
+}
 table {
 	border-collapse: collapse;
 	width: 100%;
-	font-family: Arial, sans-serif;
-	font-size: 14px;
 	margin-bottom: 20px;
 }
 thead {
@@ -167,6 +169,9 @@ div.progress-bar.complete {
 .context-menu-item {
 	position: absolute;
 	background-color: #fff;
+	padding: 5px;
+	min-width: 200px;
+	border: 1px solid #888;
 }
 </style>
 """
@@ -237,7 +242,7 @@ document.addEventListener('contextmenu', (event) => {
 		googleItem.href = googleurl;
 		googleItem.target = '_blank';
 		googleItem.innerText = 'View in Google Translate (G)';
-		googleItem.style.top = `${event.pageY-40}px`;
+		googleItem.style.top = `${event.pageY-56}px`;
 		googleItem.style.left = `${event.pageX}px`;
 		document.body.appendChild(googleItem);
 		const deepLItem = document.createElement('a');
@@ -245,7 +250,7 @@ document.addEventListener('contextmenu', (event) => {
 		deepLItem.href = deepLurl;
 		deepLItem.target = '_blank';
 		deepLItem.innerText = 'View in DeepL (D)';
-		deepLItem.style.top = `${event.pageY-20}px`;
+		deepLItem.style.top = `${event.pageY-30}px`;
 		deepLItem.style.left = `${event.pageX}px`;
 		document.body.appendChild(deepLItem);
 	}
