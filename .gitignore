@@ -1,0 +1,12 @@
+# Cache files
+__pycache__/
+cache/
+
+# Config files
+.env
+wiki-data.json
+
+# Working files
+pending.json
+pending_lang.txt
+table.html
