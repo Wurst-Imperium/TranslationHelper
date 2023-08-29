@@ -18,6 +18,8 @@ A tool to help me review pending Wurst Client translations. Not sure if anyone e
 
 - Includes a "bookmark" (red outline around a row), which can be moved up and down with the arrow keys and keeps its position when the page is reloaded. This helps me keep track of where I left off when I take a break from reviewing a translation.
 
+- Includes shortcuts to quickly open Google Translate (G) or DeepL (D) for any selected text.
+
 ## Example Analysis
 
 <https://wurst-imperium.github.io/TranslationHelper/872_ko_kr>
