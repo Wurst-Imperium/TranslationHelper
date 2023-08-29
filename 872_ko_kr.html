@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+
+<style>
+body {
+	font-family: Arial, sans-serif;
+	font-size: 14px;
+}
+table {
+	border-collapse: collapse;
+	width: 100%;
+	margin-bottom: 20px;
+}
+thead {
+	position: sticky;
+	top: -1px;
+}
+th, td {
+	text-align: left;
+	padding: 8px;
+	border: 1px solid #ddd;
+}
+th {
+	background-color: #f2f2f2;
+	color: #333;
+}
+tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+tr:hover {
+	background-color: #ddd;
+}
+tr.selected {
+	border: 2px solid #f00;
+}
+.general-evaluation {
+	margin-top: 20px;
+}
+.good {
+	background-color: #d4f4d4;
+}
+tr:nth-child(even) td.good {
+	background-color: #c1f1c1;
+}
+tr:hover td.good {
+	background-color: #b1eeb1;
+}
+td.colored-cell span.error,
+td.colored-cell span.warning,
+td.colored-cell span.good {
+	background-color: transparent;
+}
+.warning {
+	background-color: #ffffdd;
+}
+tr:nth-child(even) td.warning {
+	background-color: #ffffcc;
+}
+tr:hover td.warning {
+	background-color: #ffffbb;
+}
+.error {
+	background-color: #ffdddd;
+}
+.error.no-expand {
+	background-color: #f88;
+}
+tr:nth-child(even) td.error {
+	background-color: #ffcccc;
+}
+tr:hover td.error {
+	background-color: #ffbbbb;
+}
+mark.name {
+	background-color: #0ff;
+}
+mark.mcname {
+	background-color: #8f8;
+}
+div.progress-bar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 2px;
+	background-color: #f00;
+	width: 0;
+	transition: width 0.2s ease-in-out;
+}
+div.progress-bar.complete {
+	background-color: #0f0;
+}
+.context-menu-item {
+	position: absolute;
+	background-color: #fff;
+	padding: 5px;
+	min-width: 200px;
+	border: 1px solid #888;
+}
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: center;">
+      <th>Key</th>
+      <th>Evaluation</th>
+      <th>Pending</th>
+      <th>Reverse-Translated</th>
+      <th>Original</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>description.wurst.hack.aimassist</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;Reversing the translation yields the original string.</span></td>
+      <td>주변 엔티티를 조준하는 데 도움을 줍니다.</td>
+      <td><span class='good' title='Reversing the translation yields the original string.'>Helps you aim at nearby entities.</span></td>
+      <td>Helps you aim at nearby entities.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.airplace</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>공중에 블록을 배치할 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to place blocks in the air.</span></td>
+      <td>Allows you to place blocks in mid-air.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.anchoraura</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;detonates&quot; (high impact), &quot;kill&quot; (high impact), &quot;destroys&quot; (high impact)'>different meaning</abbr> than the original.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "respawn anchor" (block.minecraft.respawn_anchor) as "리스폰 정박기", but this translation says "리스폰 앵커" instead.</span></td>
+      <td>자동으로 <mark class='error no-expand' title='"respawn anchor", which Minecraft translates as "리스폰 정박기" (block.minecraft.respawn_anchor).'>리스폰 앵커</mark>를 배치(선택 사항), 충전하고 주변 엔티티를 제거합니다.</td>
+      <td>Automatically places respawn anchors (optional), charges them, and <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (high impact).'>destroys</span> surrounding entities.</td>
+      <td>Automatically places (optional), charges, and detonates <mark class='mcname' title='리스폰 정박기'>respawn anchors</mark> to kill entities around you.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.antiafk</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>자리비움 검출기에서 숨기기 위해 무작위로 이동합니다.<br>적어도 3x3 블록의 빈 공간이 필요합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Moves randomly to hide from away detectors.<br>You need at least 3x3 blocks of empty space.</span></td>
+      <td>Walks around randomly to hide you from AFK detectors.<br>Needs at least 3x3 blocks of free space.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.antiblind</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "blindness" (effect.minecraft.blindness) as "실명", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "darkness" (effect.minecraft.darkness) as "어둠", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"blindness" (effect.minecraft.blindness)'>실명</mark> 및 <mark class='mcname' title='"darkness" (effect.minecraft.darkness)'>어둠</mark> 효과를 방지합니다.<br><mark class='name'>OptiFine</mark>과 호환되지 않습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Prevents blinding and darkening effects.<br>Not compatible with <mark class='name'>OptiFine</mark>.</span></td>
+      <td>Prevents <mark class='mcname' title='실명'>blindness</mark> and <mark class='mcname' title='어둠'>darkness</mark> effects.<br>Incompatible with <mark class='name'>OptiFine</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.anticactus</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Name "Protect" is present in the original but not in the translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "cactus" (block.minecraft.cactus) as "선인장", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"cactus" (block.minecraft.cactus)'>선인장</mark> 대미지를 방지합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Prevents cactus damage.</span></td>
+      <td><mark class='name'>Protect</mark>s you from <mark class='mcname' title='선인장'>cactus</mark> damage.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.antientitypush</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "player" (entity.minecraft.player) as "플레이어", which is consistent with this translation.</span></td>
+      <td>다른 <mark class='mcname' title='"player" (entity.minecraft.player)'>플레이어</mark>나 몹에게 밀려나는 것을 방지합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Prevents being knocked back by other players or mobs.</span></td>
+      <td>Prevents you from getting pushed by <mark class='mcname' title='플레이어'>players</mark> and mobs.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.antihunger</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "hunger" (effect.minecraft.hunger) as "허기", but this translation says "배고픔" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>걷는 동안 <mark class='error no-expand' title='"hunger", which Minecraft translates as "허기" (effect.minecraft.hunger).'>배고픔</mark> 속도를 늦춥니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Slows hunger while walking.</span></td>
+      <td>Slows down your <mark class='mcname' title='허기'>hunger</mark> when you are walking.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.antiknockback</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "knockback" (enchantment.minecraft.knockback) as "밀치기", but this translation says "넉백" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "player" (entity.minecraft.player) as "플레이어", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"player" (entity.minecraft.player)'>플레이어</mark>나 몹으로부터 <mark class='error no-expand' title='"knockback", which Minecraft translates as "밀치기" (enchantment.minecraft.knockback).'>넉백</mark>을 받지 않도록 합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Avoid taking knockback from players or mobs.</span></td>
+      <td>Prevents you from taking <mark class='mcname' title='밀치기'>knockback</mark> from <mark class='mcname' title='플레이어'>players</mark> and mobs.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.antispam</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "chat" (chat.editBox) as "대화", but this translation says "채팅" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>반복된 메시지에 카운터를 추가하여 <mark class='error no-expand' title='"chat", which Minecraft translates as "대화" (chat.editBox).'>채팅</mark> 스팸을 차단합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Block chat spam by adding a counter to repeated messages.</span></td>
+      <td>Blocks <mark class='mcname' title='대화'>chat</mark> spam by adding a counter to repeated messages.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.antiwaterpush</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "water" (block.minecraft.water) as "물", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"water" (block.minecraft.water)'>물</mark>에 밀리는 것을 방지합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Prevents being pushed by water.</span></td>
+      <td>Prevents you from getting pushed by <mark class='mcname' title='물'>water</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.antiwobble</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "nausea" (effect.minecraft.nausea) as "멀미", but this translation says "메스꺼움" instead.</span><br><span class='info'><b>Info:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;Disables&quot;, &quot;wobble effect&quot;, &quot;caused by&quot;, &quot;shaking effects&quot;, &quot;Dispels&quot;, &quot;from&quot;. ChatGPT thinks none of these differences have any impact on the meaning, but still concluded that the meaning is different. ¯\_(ツ)_/¯'>different meaning</abbr> than the original, but its reasoning makes no sense.</span></td>
+      <td><mark class='error no-expand' title='"nausea", which Minecraft translates as "멀미" (effect.minecraft.nausea).'>메스꺼움</mark>과 차원문에서 일어나는 흔들림 효과를 해제합니다.</td>
+      <td>Dispels nausea and shaking effects from portals.</td>
+      <td>Disables the wobble effect caused by <mark class='mcname' title='멀미'>nausea</mark> and portals.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.arrowdmg</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "hunger" (effect.minecraft.hunger) as "허기", but this translation says "배고픔" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "crossbow" (item.minecraft.crossbow) as "쇠뇌", but this translation says "크로스보우" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "Paper" (item.minecraft.paper) as "종이", but this translation says "Paper" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "arrow" (entity.minecraft.arrow) as "화살", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"arrow" (entity.minecraft.arrow)'>화살</mark>의 공격력을 대폭 상승시키지만, 많은 <mark class='error no-expand' title='"hunger", which Minecraft translates as "허기" (effect.minecraft.hunger).'>배고픔</mark>을 소비하고 정확도가 떨어집니다.<br><br><mark class='error no-expand' title='"crossbow", which Minecraft translates as "쇠뇌" (item.minecraft.crossbow).'>크로스보우</mark>에서는 작동하지 않으며, <mark class='name'><mark class='error no-expand' title='"Paper", which Minecraft translates as "종이" (item.minecraft.paper).'>Paper</mark></mark> <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 패치된 것으로 보입니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Greatly increases the damage of arrows, but consumes a lot of hunger and reduces accuracy.<br><br>Doesn&#x27;t work on crossbow, appears to be patched on <mark class='name'>Paper</mark> servers.</span></td>
+      <td>Massively increases <mark class='mcname' title='화살'>arrow</mark> damage, but also consumes a lot of <mark class='mcname' title='허기'>hunger</mark> and reduces accuracy.<br><br>Does not work with <mark class='mcname' title='쇠뇌'>crossbow</mark>s and seems to be patched on <mark class='name'><mark class='mcname' title='종이'>Paper</mark></mark> <mark class='mcname' title='서버'>servers</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.arrowdmg.packets</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>전송할 패킷 수.<br>패킷이 많을수록 공격력이 높아집니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Number of packets to transmit.<br>The more packets, the higher the attack power.</span></td>
+      <td>Amount of packets to send.<br>More packets = higher damage.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.arrowdmg.trident_yeet_mode</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "Riptide" (enchantment.minecraft.riptide) as "급류", but this translation says "Riptide" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "trident" (entity.minecraft.trident) as "삼지창", which is consistent with this translation.</span></td>
+      <td>활성화하면 <mark class='mcname' title='"trident" (entity.minecraft.trident)'>삼지창</mark>이 훨씬 멀리 날아갑니다. 공격력이나 <mark class='error no-expand' title='"Riptide", which Minecraft translates as "급류" (enchantment.minecraft.riptide).'>Riptide</mark>에 영향을 미치지 않는 것 같습니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>경고:<mark class='code'>§r</mark> 이 설정을 활성화하면 <mark class='mcname' title='"trident" (entity.minecraft.trident)'>삼지창</mark>을 쉽게 잃을 수 있습니다!</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>When activated, the trident flies much farther. It doesn&#x27;t seem to affect attack power or Riptide.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>Warning:<mark class='code'>§r</mark> You can easily lose your trident if you enable this setting!</span></td>
+      <td>When enabled, <mark class='mcname' title='삼지창'>tridents</mark> fly much further. Doesn&#x27;t seem to affect damage or <mark class='mcname' title='급류'>Riptide</mark>.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> You can easily lose your trident by enabling this option!</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autoarmor</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "armor" (attribute.name.generic.armor) as "방어", but this translation says "방어구" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>자동으로 <mark class='error no-expand' title='"armor", which Minecraft translates as "방어" (attribute.name.generic.armor).'>방어구</mark>를 관리합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically manage your armor.</span></td>
+      <td>Manages your <mark class='mcname' title='방어'>armor</mark> automatically.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autobuild</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>자동으로 건물을 건설합니다.<br>한 개의 블록을 놓으면 건설을 시작합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Build buildings automatically.<br>Place one block to start building.</span></td>
+      <td>Builds things automatically.<br>Place a single block to start building.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autocomplete</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>대형 언어 모델을 사용하여 채팅 메시지를 자동 완성합니다. <mark class='name'>OpenAI</mark> 계정 <mark class='name'>API</mark> 접근 권한이나 지역적으로 설치된 <mark class='name'>oobabooga</mark> 웹 UI가 필요합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Autocomplete chat messages using large language models. Requires <mark class='name'>OpenAI</mark> account <mark class='name'>API</mark> access or locally installed <mark class='name'>oobabooga</mark> web UI.</span></td>
+      <td>Auto-completes your chat messages using large language models. Requires either an <mark class='name'>OpenAI</mark> account with <mark class='name'>API</mark> access or a locally installed language model with the <mark class='name'>oobabooga</mark> web UI.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autodrop</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>원하지 않는 아이템을 자동으로 버립니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically discard unwanted items.</span></td>
+      <td>Automatically drops unwanted items.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autoleave</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td>체력이 낮을 때 자동으로 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 나갑니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically leave the server when your health is low.</span></td>
+      <td>Automatically leaves the <mark class='mcname' title='서버'>server</mark> when your health is low.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autolibrarian</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "villager" (entity.minecraft.villager) as "주민", but this translation says "마을 주민" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "librarian" (entity.minecraft.villager.librarian) as "사서", but this translation says "서적상" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "enchanted book" (item.minecraft.enchanted_book) as "마법이 부여된 책", but this translation says "인챈트된 책" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>특정 <mark class='error no-expand' title='"enchanted book", which Minecraft translates as "마법이 부여된 책" (item.minecraft.enchanted_book).'>인챈트된 책</mark>을 판매하는 <mark class='error no-expand' title='"librarian", which Minecraft translates as "사서" (entity.minecraft.villager.librarian).'>서적상</mark>으로 <mark class='error no-expand' title='"villager", which Minecraft translates as "주민" (entity.minecraft.villager).'>마을 주민</mark>을 자동으로 훈련합니다. 이 해킹을 사용하면 전체 거래 기구를 짧은 시간 내에 설정할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically train villagers to be booksellers that sell certain enchanted books. With this hack, you can set up your entire trading instrument in a fraction of the time.</span></td>
+      <td>Automatically trains a <mark class='mcname' title='주민'>villager</mark> to become a <mark class='mcname' title='사서'>librarian</mark> that sells a specific <mark class='mcname' title='마법이 부여된 책'>enchanted book</mark>. You can set up an entire trading hall in no time by using this hack.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autoeat</td>
+      <td><span class='info'><b>Info:</b>&nbsp;This string has not been translated.</span></td>
+      <td>(no data)</td>
+      <td>(no data)</td>
+      <td>Automatically eats food when necessary.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.autoeat.target_hunger</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>배고픔 게이지를 이 수준 이상으로 유지하려고 하지만 배고픔 점수를 낭비하지 않습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Try to keep your hunger gauge above this level, but don&#x27;t waste hunger points.</span></td>
+      <td>Tries to keep the hunger bar at or above this level, but only if it doesn&#x27;t waste any hunger points.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.autoeat.min_hunger</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>항상 이 수준 이상으로 배고픔 게이지를 유지하되, 음식 점수를 낭비하더라도 상관하지 않습니다.<br>6.5 - 바닐라 음식 아이템으로는 낭비를 일으키지 않습니다.<br>10.0 - 낭비를 무시하고 배고픔 게이지를 항상 가득 채웁니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Always keep your hunger gauge above this level, but don&#x27;t mind wasting food points.<br>6.5 - Vanilla food items do not cause waste.<br>10.0 - Ignores waste and always fills the hunger bar.</span></td>
+      <td>Always keeps the hunger bar at or above this level, even if it wastes some hunger points.<br>6.5 - Cannot cause any waste with vanilla food items.<br>10.0 - Completely ignores waste and just keeps the hunger bar full.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.autoeat.injured_hunger</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>부상당했을 때 이 수준 이상으로 배고픔 게이지를 채우며 음식 점수를 낭비하더라도 상관하지 않습니다.<br>10.0 - 가장 빠른 회복<br>9.0 - 가장 느린 회복<br>&lt;9.0 - 회복 없음<br>&lt;3.5 - 달리기 금지</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Fills your hunger gauge above this level when injured, and doesn&#x27;t care if you waste food points.<br>10.0 - fastest recovery<br>9.0 - slowest recovery<br>&lt;9.0 - no recovery<br>&lt;3.5 - no running</span></td>
+      <td>Fills the hunger bar to at least this level when you are injured, even if it wastes some hunger points.<br>10.0 - fastest healing<br>9.0 - slowest healing<br>&lt;9.0 - no healing<br>&lt;3.5 - no sprinting</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.autoeat.injury_threshold</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>작은 부상으로 인해 모든 음식이 낭비되는 것을 방지합니다. <mark class='name'>AutoEat</mark>은 최소한 이만큼의 체력을 잃었을 때만 부상 상태로 간주합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>A small injury prevents all food from being wasted. <mark class='name'>AutoEat</mark> only considers you injured when you lose at least this amount of health.</span></td>
+      <td>Prevents small injuries from wasting all your food. <mark class='name'>AutoEat</mark> will only consider you injured if you have lost at least this number of hearts.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.autoeat.take_items_from</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='name'>AutoEat</mark>가 음식을 찾을 위치.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Where <mark class='name'>AutoEat</mark> will find food.</span></td>
+      <td>Where <mark class='name'>AutoEat</mark> should look for food.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.autoeat.eat_while_walking</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>걷는 동안 음식을 먹는 것은 속도를 늦춥니다. 권장하지 않습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Eating while walking slows you down. Not recommended.</span></td>
+      <td>Slows you down, not recommended.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.autoeat.allow_hunger</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "Rotten flesh" (item.minecraft.rotten_flesh) as "썩은 살점", but this translation says "김치" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "hunger" (effect.minecraft.hunger) as "허기", but this translation says "배고픔" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='error no-expand' title='"Rotten flesh", which Minecraft translates as "썩은 살점" (item.minecraft.rotten_flesh).'>김치</mark>는 무해한 &#x27;<mark class='error no-expand' title='"hunger", which Minecraft translates as "허기" (effect.minecraft.hunger).'>배고픔</mark>&#x27; 효과를 적용시킵니다.<br>위급한 상황에서 사용 가능하고 유용합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Kimchi applies a harmless &#x27;hunger&#x27; effect.<br>Available and useful in emergency situations.</span></td>
+      <td><mark class='mcname' title='썩은 살점'>Rotten flesh</mark> applies a harmless &quot;<mark class='mcname' title='허기'>hunger</mark>&quot; effect.<br>It is safe to eat and useful as emergency food.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.autoeat.allow_poison</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>독성 음식은 시간 경과에 따라 피해를 입힙니다.<br>권장하지 않습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Toxic Food deals damage over time.<br>Not recommended.</span></td>
+      <td>Poisonous food applies damage over time.<br>Not recommended.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.autoeat.allow_chorus</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>엔더 열매를 먹으면 무작위 위치로 순간이동됩니다.<br>권장하지 않습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Eating an ender fruit teleports you to a random location.<br>Not recommended.</span></td>
+      <td>Eating chorus fruit teleports you to a random location.<br>Not recommended.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autofarm</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "wheat" (item.minecraft.wheat) as "밀", but this translation says "곡물" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "nether wart" (block.minecraft.nether_wart) as "네더 사마귀", but this translation says "네더 와트" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Line breaks have changed.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "carrot" (item.minecraft.carrot) as "당근", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "potato" (item.minecraft.potato) as "감자", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "beetroot" (item.minecraft.beetroot) as "비트", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "pumpkin" (block.minecraft.pumpkin) as "호박", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "melon" (block.minecraft.melon) as "수박", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "cactus" (block.minecraft.cactus) as "선인장", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "sugar cane" (block.minecraft.sugar_cane) as "사탕수수", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "kelp" (block.minecraft.kelp) as "켈프", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "bamboo" (block.minecraft.bamboo) as "대나무", which is consistent with this translation.</span></td>
+      <td><mark class='error no-expand' title='"wheat", which Minecraft translates as "밀" (item.minecraft.wheat).'>곡물</mark>, <mark class='mcname' title='"carrot" (item.minecraft.carrot)'>당근</mark>, <mark class='mcname' title='"potato" (item.minecraft.potato)'>감자</mark>, <mark class='mcname' title='"beetroot" (item.minecraft.beetroot)'>비트</mark>, <mark class='mcname' title='"pumpkin" (block.minecraft.pumpkin)'>호박</mark>, <mark class='mcname' title='"melon" (block.minecraft.melon)'>수박</mark>, <mark class='mcname' title='"cactus" (block.minecraft.cactus)'>선인장</mark>, <mark class='mcname' title='"sugar cane" (block.minecraft.sugar_cane)'>사탕수수</mark>, <mark class='mcname' title='"kelp" (block.minecraft.kelp)'>켈프</mark>, <mark class='mcname' title='"bamboo" (block.minecraft.bamboo)'>대나무</mark>, <mark class='error no-expand' title='"nether wart", which Minecraft translates as "네더 사마귀" (block.minecraft.nether_wart).'>네더 와트</mark>, 코코아 열매에 대해 자동으로 작물을 수확하고 재심합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically harvest and replant crops for Grain, Carrots, Potatoes, Beets, Pumpkins, Watermelons, Cacti, Sugarcane, Kelp, Bamboo, Netherwarts, and Cocoa Beans.</span></td>
+      <td>Harvests and replants crops automatically.<br>Works with <mark class='mcname' title='밀'>wheat</mark>, <mark class='mcname' title='당근'>carrots</mark>, <mark class='mcname' title='감자'>potatoes</mark>, <mark class='mcname' title='비트'>beetroots</mark>, <mark class='mcname' title='호박'>pumpkins</mark>, <mark class='mcname' title='수박'>melons</mark>, <mark class='mcname' title='선인장'>cacti</mark>, <mark class='mcname' title='사탕수수'>sugar canes</mark>, <mark class='mcname' title='켈프'>kelp</mark>, <mark class='mcname' title='대나무'>bamboo</mark>, <mark class='mcname' title='네더 사마귀'>nether warts</mark>, and cocoa beans.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autofish</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "fishing rod" (item.minecraft.fishing_rod) as "낚싯대", which is consistent with this translation.</span></td>
+      <td>최고의 <mark class='mcname' title='"fishing rod" (item.minecraft.fishing_rod)'>낚싯대</mark>를 사용하여 자동으로 물고기를 잡습니다. 물고기를 잡는 동안 더 좋은 <mark class='mcname' title='"fishing rod" (item.minecraft.fishing_rod)'>낚싯대</mark>를 발견하면 자동으로 전환됩니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically catch fish using the best fishing rod. If you find a better rod while fishing, it will automatically switch.</span></td>
+      <td>Automatically catches fish using your best <mark class='mcname' title='낚싯대'>fishing rod</mark>. If it finds a better rod while fishing, it will automatically switch to it.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.automine</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>시선을 정한 블록을 자동으로 채굴합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>It automatically mines the block it sets its eyes on.</span></td>
+      <td>Automatically mines any block that you look at.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autopotion</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>체력이 낮을 때 즉시 회복 물약을 자동으로 던집니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically throws an instant recovery potion when your health is low.</span></td>
+      <td>Automatically throws splash potions of instant health when your health is low.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autoreconnect</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 강제 퇴장당할 경우 자동으로 재접속합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>If you are forcibly removed from the server, you will automatically reconnect.</span></td>
+      <td>Automatically reconnects when you get kicked from the <mark class='mcname' title='서버'>server</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autorespawn</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "respawn" (deathScreen.respawn) as "리스폰", which is consistent with this translation.</span></td>
+      <td>죽을 경우 자동으로 <mark class='mcname' title='"respawn" (deathScreen.respawn)'>리스폰</mark>합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically respawn if killed.</span></td>
+      <td>Automatically <mark class='mcname' title='리스폰'>respawns</mark> you whenever you die.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autosign</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "sign" (book.signButton) as "서명하기", but this translation says "표지판" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>원하는 글을 모든 <mark class='error no-expand' title='"sign", which Minecraft translates as "서명하기" (book.signButton).'>표지판</mark>에 즉시 작성합니다. 활성화된 후 첫 번째 <mark class='error no-expand' title='"sign", which Minecraft translates as "서명하기" (book.signButton).'>표지판</mark>에 일반적으로 글을 작성하여 모든 다른 <mark class='error no-expand' title='"sign", which Minecraft translates as "서명하기" (book.signButton).'>표지판</mark>에 적용할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Instantly write whatever you want on any sign. Once activated, you can write normally on the first sign and apply it to all other signs.</span></td>
+      <td>Instantly writes whatever text you want on every <mark class='mcname' title='서명하기'>sign</mark> you place or edit. Once activated, you can write normally on the first <mark class='mcname' title='서명하기'>sign</mark> to specify the text for all other <mark class='mcname' title='서명하기'>sign</mark>s.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autosoup</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "hunger" (effect.minecraft.hunger) as "허기", but this translation says "배고픔" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>체력이 낮을 때 자동으로 수프를 먹습니다.<br><br><mark class='code'>§l</mark>참고:<mark class='code'>§r</mark> 이 해킹 기능은 <mark class='error no-expand' title='"hunger", which Minecraft translates as "허기" (effect.minecraft.hunger).'>배고픔</mark>을 무시하고 수프를 직접 먹으면 체력이 회복된다고 가정합니다. 만약 이 기능이 서버에서 설정되어 있지 않다면 <mark class='name'>AutoEat</mark>을 사용하세요.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically eats soup when health is low.<br><br><mark class='code'>§l</mark>NOTE:<mark class='code'>§r</mark> This hack assumes you ignore hunger and eat the soup directly to restore health. If this feature is not configured on your server, use <mark class='name'>AutoEat</mark>.</span></td>
+      <td>Automatically eats soup when your health is low.<br><br><mark class='code'>§l</mark>Note:<mark class='code'>§r</mark> This hack ignores <mark class='mcname' title='허기'>hunger</mark> and assumes that eating soup directly refills your health. If the server you are playing on is not configured to do that, use <mark class='name'>AutoEat</mark> instead.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autosprint</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='info'><b>Info:</b>&nbsp;Minecraft translates "sprint" (key.sprint) as "달리기".</span></td>
+      <td>자동으로 달립니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>runs automatically.</span></td>
+      <td>Makes you sprint automatically.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autosteal</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "chest" (block.minecraft.chest) as "상자", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "shulker box" (block.minecraft.shulker_box) as "셜커 상자", which is consistent with this translation.</span></td>
+      <td>여는 모든 <mark class='mcname' title='"chest" (block.minecraft.chest)'>상자</mark>와 <mark class='mcname' title='"shulker box" (block.minecraft.shulker_box)'>셜커 상자</mark>에서 모든 것을 자동으로 훔칩니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically steals everything from every chest and shulker box you open.</span></td>
+      <td>Automatically steals everything from all <mark class='mcname' title='상자'>chests</mark> and <mark class='mcname' title='셜커 상자'>shulker boxes</mark> that you open.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autoswim</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>수영 애니메이션을 자동으로 실행합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically run the swimming animation.</span></td>
+      <td>Triggers the swimming animation automatically.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autoswitch</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "Switch" (mco.minigame.world.startButton) as "전환", but this translation says "전환합니다" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "hotbar" (options.attack.hotbar) as "단축 바", but this translation says "핫바" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "item" (entity.minecraft.item) as "아이템", which is consistent with this translation.</span></td>
+      <td>항상 손에 들고 있는 <mark class='mcname' title='"item" (entity.minecraft.item)'>아이템</mark>을 <mark class='error no-expand' title='"Switch", which Minecraft translates as "전환" (mco.minigame.world.startButton).'>전환합니다</mark>.<br><br><mark class='code'>§l</mark>팁:<mark class='code'>§r</mark> 이 기능은 다양한 색의 양털 또는 콘크리트 블록을 <mark class='error no-expand' title='"hotbar", which Minecraft translates as "단축 바" (options.attack.hotbar).'>핫바</mark>에 넣고 <mark class='name'>BuildRandom</mark>과 함께 사용하는 것이 좋습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Switches the item you are always holding in your hand.<br><br><mark class='code'>§l</mark>Tips:<mark class='code'>§r</mark> This feature is recommended to use with <mark class='name'>BuildRandom</mark> by placing different colored wool or concrete blocks in the hotbar.</span></td>
+      <td><mark class='mcname' title='전환'>Switches</mark> the <mark class='mcname' title='아이템'>item</mark> in your hand all the time.<br><br><mark class='code'>§l</mark>ProTip:<mark class='code'>§r</mark> Use this in combination with <mark class='name'>BuildRandom</mark> while having a lot of different colored wool or concrete blocks in your <mark class='mcname' title='단축 바'>hotbar</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autosword</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;hotbar&quot; (medium impact), &quot;inventory&quot; (medium impact)'>different meaning</abbr> than the original.</span><br><span class='info'><b>Info:</b>&nbsp;Minecraft translates "hotbar" (options.attack.hotbar) as "단축 바".</span></td>
+      <td>자동으로 인벤토리에서 가장 좋은 무기를 사용하여 Entity를 공격합니다.<br>팁: <mark class='name'>Killaura</mark>와 함께 사용할 수 있습니다.</td>
+      <td>Automatically use the best weapon in your <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>inventory</span> to attack the Entity.<br>Tip: Can be used with <mark class='name'>Killaura</mark>.</td>
+      <td>Automatically uses the best weapon in your hotbar to attack entities.<br>Tip: This works with <mark class='name'>Killaura</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autotool</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='info'><b>Info:</b>&nbsp;Minecraft translates "hotbar" (options.attack.hotbar) as "단축 바".</span></td>
+      <td>블록을 부수려고 할 때 인벤토리에서 가장 빠른 적용 가능한 도구를 자동으로 장착합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically equip the fastest applicable tool in your inventory when trying to break a block.</span></td>
+      <td>Automatically equips the fastest applicable tool in your hotbar when you try to break a block.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autototem</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "totem of undying" (item.minecraft.totem_of_undying) as "불사의 토템", but this translation says "Totem of Undying" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='error no-expand' title='"totem of undying", which Minecraft translates as "불사의 토템" (item.minecraft.totem_of_undying).'>Totem of Undying</mark>을 자동으로 보조 아이템 슬롯에 넣습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically puts the Totem of Undying into the secondary item slot.</span></td>
+      <td>Automatically moves <mark class='mcname' title='불사의 토템'>totems of undying</mark> to your off-hand.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.autowalk</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='info'><b>Info:</b>&nbsp;This string is identical to Google Translate.</span></td>
+      <td>자동으로 걷게 해줍니다.</td>
+      <td><span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>It walks automatically.</span></td>
+      <td>Makes you walk automatically.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.basefinder</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>인공 블록을 검색하여 플레이어 기지를 찾습니다.<br>찾은 블록은 선택한 색상으로 강조됩니다.<br>팩션 기지를 찾는 데 유용합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'><mark class='name'>Search</mark> artificial blocks to find player bases.<br>Blocks found are highlighted in the color of your choice.<br>Useful for finding faction bases.</span></td>
+      <td>Finds player bases by searching for man-made blocks.<br>The blocks that it finds will be highlighted in the selected color.<br>Good for finding faction bases.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.blink</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>활성화되어 있을 때 모든 움직임 업데이트를 일시 중단합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Suspends all movement updates when active.</span></td>
+      <td>Suspends all motion updates while enabled.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.boatfly</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "sprint" (key.sprint) as "달리기", but this translation says "Shift" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "boat" (entity.minecraft.boat) as "보트", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"boat" (entity.minecraft.boat)'>보트</mark> 및 기타 차량으로 비행할 수 있습니다.<br><mark class='error no-expand' title='"sprint", which Minecraft translates as "달리기" (key.sprint).'>Shift</mark> 키를 누르면 빠르게 내려갈 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>You can fly by boat and other vehicles.<br>You can quickly descend by pressing the Shift key.</span></td>
+      <td>Allows you to fly with <mark class='mcname' title='보트'>boats</mark> and other vehicles.<br>Press the <mark class='mcname' title='달리기'>sprint</mark> key to go down faster.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.bonemealaura</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "bone meal" (item.minecraft.bone_meal) as "뼛가루", but this translation says "본파우더" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>특정 유형의 식물에 대해 <mark class='error no-expand' title='"bone meal", which Minecraft translates as "뼛가루" (item.minecraft.bone_meal).'>본파우더</mark>를 자동으로 사용합니다.<br>체크박스를 사용하여 식물 유형을 지정할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically uses bone powder for certain types of plants.<br>You can specify the plant type using the checkbox.</span></td>
+      <td>Automatically uses <mark class='mcname' title='뼛가루'>bone meal</mark> on specific types of plants.<br>Use the checkboxes to specify the types of plants.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.bowaimbot</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "crossbow" (item.minecraft.crossbow) as "쇠뇌", but this translation says "석궁" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "bow" (item.minecraft.bow) as "활", which is consistent with this translation.</span></td>
+      <td>자동으로 <mark class='mcname' title='"bow" (item.minecraft.bow)'>활</mark>이나 <mark class='error no-expand' title='"crossbow", which Minecraft translates as "쇠뇌" (item.minecraft.crossbow).'>석궁</mark>을 조준합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically aim your bow or crossbow.</span></td>
+      <td>Automatically aims your <mark class='mcname' title='활'>bow</mark> or <mark class='mcname' title='쇠뇌'>crossbow</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.buildrandom</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='info'><b>Info:</b>&nbsp;This string is identical to Google Translate.</span></td>
+      <td>주변에 무작위로 블록을 배치합니다.</td>
+      <td><span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>Place blocks randomly around you.</span></td>
+      <td>Randomly places blocks around you.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.bunnyhop</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "jump" (key.jump) as "점프", which is consistent with this translation.</span></td>
+      <td>자동으로 <mark class='mcname' title='"jump" (key.jump)'>점프</mark>합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Jump automatically.</span></td>
+      <td>Makes you <mark class='mcname' title='점프'>jump</mark> automatically.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.cameradistance</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>카메라 거리를 3인칭에서 변경할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Camera distance can be changed in 3rd person.</span></td>
+      <td>Allows you to change the camera distance in 3rd person.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.cameranoclip</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>카메라가 벽을 통과할 수 있습니다(3인칭).</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Camera can pass through walls (3rd person).</span></td>
+      <td>Allows the camera in 3rd person to go through walls.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.cavefinder</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>선택한 색상으로 동굴을 강조하여 찾도록 도와줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Highlights the cave with a color of your choice to help you find it.</span></td>
+      <td>Helps you to find caves by highlighting them in the selected color.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.chattranslator</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Name "Google" is present in the original but not in the translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>구글 번역을 이용하여 수신된 채팅 메시지를 번역합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Translate received chat messages using <mark class='name'>Google</mark> Translate.</span></td>
+      <td>Translates incoming chat messages using <mark class='name'>Google</mark> Translate.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.chestesp</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "chest" (block.minecraft.chest) as "상자", which is consistent with this translation.</span></td>
+      <td>주변의 <mark class='mcname' title='"chest" (block.minecraft.chest)'>상자</mark>를 강조합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Highlight the box around it.</span></td>
+      <td>Highlights nearby <mark class='mcname' title='상자'>chests</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.clickaura</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>클릭할 때 가장 가까운 유효한 엔티티를 자동으로 공격합니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>경고:<mark class='code'>§r</mark> <mark class='name'>ClickAura</mark>는 <mark class='name'>Killaura</mark>보다 더욱 의심스러워 보이며, 플러그인에 탐지되기 쉽습니다. 대신 <mark class='name'>Killaura</mark>나 <mark class='name'>TriggerBot</mark>을 사용하는 것이 좋습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>When clicked, it will automatically attack the nearest valid entity.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> <mark class='name'>ClickAura</mark> looks more suspicious than <mark class='name'>Killaura</mark> and is more likely to be detected by plugins. We recommend using <mark class='name'>Killaura</mark> or <mark class='name'>TriggerBot</mark> instead.</span></td>
+      <td>Automatically attacks the closest valid entity whenever you click.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> <mark class='name'>ClickAura</mark>s generally look more suspicious than <mark class='name'>Killaura</mark>s and are easier for plugins to detect. It is recommended to use <mark class='name'>Killaura</mark> or <mark class='name'>TriggerBot</mark> instead.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.clickgui</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>윈도우 기반 <mark class='name'>ClickGUI</mark>.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Windows-based <mark class='name'>ClickGUI</mark>.</span></td>
+      <td>Window-based <mark class='name'>ClickGUI</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.crashchest</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;Generates a chest that essentially bans people from the server&quot; (medium impact), &quot;if they have too many copies of it in their inventory&quot; (medium impact), &quot;This cannot be undone&quot; (medium impact), &quot;Use with caution&quot; (low impact), &quot;copies are instead placed in a chest&quot; (medium impact), &quot;anyone who opens the chest will be kicked from the server&quot; (medium impact), &quot;If you have multiple copies in your inventory&quot; (medium impact), &quot;the server will effectively create a crate with usage limits&quot; (medium impact), &quot;This is irreversible&quot; (medium impact), &quot;Use with care&quot; (low impact), &quot;If instead a copy is placed in the chest&quot; (medium impact), &quot;any player who opens the chest will be kicked off the server&quot; (medium impact)'>different meaning</abbr> than the original.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "inventory" (container.inventory) as "보관함", but this translation says "인벤토리" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "chest" (block.minecraft.chest) as "상자", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td><mark class='error no-expand' title='"inventory", which Minecraft translates as "보관함" (container.inventory).'>인벤토리</mark>에 여러 개의 복사본이 있는 경우 사실상 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 사용 제한이 걸린 <mark class='mcname' title='"chest" (block.minecraft.chest)'>상자</mark>를 생성합니다. <mark class='code'>§c</mark><mark class='code'>§l</mark>경고:<mark class='code'>§r</mark> <mark class='code'>§c</mark>이것은 되돌릴 수 없습니다. 신중하게 사용하세요!<mark class='code'>§r</mark><br><br>대신 <mark class='mcname' title='"chest" (block.minecraft.chest)'>상자</mark>에 복사본이 배치되면, <mark class='mcname' title='"chest" (block.minecraft.chest)'>상자</mark>를 여는 모든 플레이어가 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 강제 퇴장당합니다(한 번만).</td>
+      <td><span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>If you have multiple copies in your inventory</span>, <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>the server will effectively create a crate with usage limits</span>. <mark class='code'>§c</mark><mark class='code'>§l</mark>Warning:<mark class='code'>§r</mark> <mark class='code'>§c</mark><span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>This is irreversible</span>. <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>Use with care</span>!<mark class='code'>§r</mark><br><br><span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>If instead a copy is placed in the chest</span>, <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>any player who opens the chest will be kicked off the server</span> (one time only).</td>
+      <td>Generates a <mark class='mcname' title='상자'>chest</mark> that essentially bans people from the <mark class='mcname' title='서버'>server</mark> if they have too many copies of it in their <mark class='mcname' title='보관함'>inventory</mark>. <mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> <mark class='code'>§c</mark>This cannot be undone. Use with caution!<mark class='code'>§r</mark><br><br>If copies are instead placed in a <mark class='mcname' title='상자'>chest</mark>, anyone who opens the <mark class='mcname' title='상자'>chest</mark> will be kicked from the <mark class='mcname' title='서버'>server</mark> (just once).</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.creativeflight</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "Creative Mode" (gameMode.creative) as "크리에이티브 모드", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"Creative Mode" (gameMode.creative)'>크리에이티브 모드</mark>와 같이 비행할 수 있습니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>경고:<mark class='code'>§r</mark> <mark class='name'>NoFall</mark>을 사용하지 않으면 낙하 대미지를 입을 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>You can fly like creative mode.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>Warning: You may take fall damage if you do not use <mark class='code'>§r</mark> <mark class='name'>NoFall</mark>.</span></td>
+      <td>Allows you to fly like in <mark class='mcname' title='크리에이티브 모드'>Creative Mode</mark>.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> You will take fall damage if you don&#x27;t use <mark class='name'>NoFall</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.criticals</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;critical hits&quot; (medium impact), &quot;powerful blows&quot; (medium impact)'>different meaning</abbr> than the original.</span></td>
+      <td>모든 공격을 강력한 일격으로 변경합니다.</td>
+      <td>Changes all attacks into <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>powerful blows</span>.</td>
+      <td>Changes all your hits to critical hits.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.crystalaura</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "end crystal" (entity.minecraft.end_crystal) as "엔드 수정", but this translation says "end 크리스탈" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>주변의 엔티티를 죽이기 위해 선택적으로 <mark class='error no-expand' title='"end crystal", which Minecraft translates as "엔드 수정" (entity.minecraft.end_crystal).'>end 크리스탈</mark>을 자동으로 설치(선택)하고 폭발시킵니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically installs (picks) and explodes an optional end crystal to kill nearby entities.</span></td>
+      <td>Automatically places (optional) and detonates <mark class='mcname' title='엔드 수정'>end crystals</mark> to kill entities around you.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.derp</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "player" (entity.minecraft.player) as "플레이어", which is consistent with this translation.</span></td>
+      <td>머리를 무작위로 움직입니다.<br>다른 <mark class='mcname' title='"player" (entity.minecraft.player)'>플레이어</mark>에게만 보입니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Move your head randomly.<br>Only visible to other players.</span></td>
+      <td>Randomly moves your head around.<br>Only visible to other <mark class='mcname' title='플레이어'>players</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.dolphin</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "water" (block.minecraft.water) as "물", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "dolphin" (entity.minecraft.dolphin) as "돌고래", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"water" (block.minecraft.water)'>물</mark> 속에서 자동으로 위아래로 움직이도록 합니다.<br>(<mark class='mcname' title='"dolphin" (entity.minecraft.dolphin)'>돌고래</mark>처럼)</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Let it automatically move up and down in the water.<br>(Like a dolphin)</span></td>
+      <td>Makes you bob up in <mark class='mcname' title='물'>water</mark> automatically.<br>(just like a <mark class='mcname' title='돌고래'>dolphin</mark>)</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.excavator</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>선택한 영역 내의 모든 블록을 자동으로 부숩니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically breaks all blocks within the selected area.</span></td>
+      <td>Automatically breaks all blocks in the selected area.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.extraelytra</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;Elytra makes using Elytra even easier.&quot; (medium impact)'>different meaning</abbr> than the original.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "Elytra" (item.minecraft.elytra) as "겉날개", but this translation says "Elytra" instead.</span></td>
+      <td><mark class='error no-expand' title='"Elytra", which Minecraft translates as "겉날개" (item.minecraft.elytra).'>Elytra</mark> 사용을 더욱 쉽게합니다.</td>
+      <td><span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>Elytra makes using Elytra even easier.</span></td>
+      <td>Makes the <mark class='mcname' title='겉날개'>Elytra</mark> easier to use.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.fancychat</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td>채팅 메시지에서 <mark class='name'>ASCII</mark> 문자를 화려한 유니코드 문자로 바꿉니다. 일부 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 욕설 필터를 우회하는 데 사용할 수 있습니다. <br>유니코드 문자를 차단하는 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서는 작동하지 않습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Replace <mark class='name'>ASCII</mark> characters with fancy Unicode characters in chat messages. Can be used to bypass profanity filters on some servers.<br>This won&#x27;t work on servers that block Unicode characters.</span></td>
+      <td>Replaces <mark class='name'>ASCII</mark> characters in sent chat messages with fancier unicode characters. Can be used to bypass curse word filters on some <mark class='mcname' title='서버'>servers</mark>.<br>Does not work on <mark class='mcname' title='서버'>servers</mark> that block unicode characters.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.fastbreak</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>블록을 더 빨리 부술 수 있습니다. <br>팁: <mark class='name'>Nuker</mark>와 함께 사용할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Blocks can be broken faster.<br>Tip: Can be used with <mark class='name'>Nuker</mark>.</span></td>
+      <td>Allows you to break blocks faster.<br>Tip: This works with <mark class='name'>Nuker</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.fastladder</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "ladder" (block.minecraft.ladder) as "사다리", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"ladder" (block.minecraft.ladder)'>사다리</mark>를 더 빨리 올라갈 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>You can climb ladders faster.</span></td>
+      <td>Allows you to climb up <mark class='mcname' title='사다리'>ladders</mark> faster.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.fastplace</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "fast" (options.clouds.fast) as "빠르게", but this translation says "더 빨리" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='info'><b>Info:</b>&nbsp;Minecraft translates "speed" (attribute.name.generic.movement_speed) as "속도".</span></td>
+      <td>블록을 5배 <mark class='error no-expand' title='"fast", which Minecraft translates as "빠르게" (options.clouds.fast).'>더 빨리</mark> 배치할 수 있습니다. <br>팁: <mark class='name'>AutoBuild</mark>와 같은 다른 해킹을 가속화할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Blocks can be placed 5x faster.<br>Tip: You can accelerate other hacks like <mark class='name'>AutoBuild</mark>.</span></td>
+      <td>Allows you to place blocks 5 times <mark class='mcname' title='빠르게'>faster</mark>.<br>Tip: This can speed up other hacks like <mark class='name'>AutoBuild</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.feedaura</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>주변의 동물을 자동으로 사료로 채웁니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically refill nearby animals with feed.</span></td>
+      <td>Automatically feeds animals around you.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.fightbot</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>자동으로 주변을 돌아다니며 모든 것을 죽이는 봇입니다. <br><mark class='name'>MobArena</mark>에 적합합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>A bot that automatically moves around and kills everything.<br>Perfect for <mark class='name'>MobArena</mark>.</span></td>
+      <td>A bot that automatically walks around and kills everything.<br>Good for <mark class='name'>MobArena</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.fish</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>수중 중력을 해제하여 물고기처럼 수영할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>You can swim like a fish by releasing underwater gravity.</span></td>
+      <td>Disables underwater gravity so you can swim like a fish.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.flight</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>비행이 가능합니다. <br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>경고:<mark class='code'>§r</mark> <mark class='name'>NoFall</mark>을 사용하지 않으면 낙하 피해를 입을 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'><mark class='name'>Flight</mark> is possible.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark> WARNING: <mark class='code'>§r</mark> You may take fall damage if you do not use <mark class='name'>NoFall</mark>.</span></td>
+      <td>Allows you to fly.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> You will take fall damage if you don&#x27;t use <mark class='name'>NoFall</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.follow</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>가장 가까운 개체를 따라가는 봇입니다. <br>매우 귀찮습니다. <br><br><mark class='name'>.follow</mark>를 사용하여 특정 개체를 따라갈 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>A bot that follows the nearest object.<br>It&#x27;s very annoying.<br><br>You can use <mark class='name'>.follow</mark> to follow a specific object.</span></td>
+      <td>A bot that follows the closest entity.<br>Very annoying.<br><br>Use <mark class='name'>.follow</mark> to follow a specific entity.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.forceop</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='name'>AuthMe</mark> 비밀번호를 크랙합니다. <br>OP를 얻는 데 사용할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Crack <mark class='name'>AuthMe</mark> password.<br>It can be used to get OP.</span></td>
+      <td>Cracks <mark class='name'>AuthMe</mark> passwords.<br>Can be used to get OP.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.freecam</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>캐릭터를 움직이지 않고 카메라를 이동할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>You can move the camera without moving your character.</span></td>
+      <td>Allows you to move the camera without moving your character.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.fullbright</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>어둠 속에서 볼 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>You can see in the dark.</span></td>
+      <td>Allows you to see in the dark.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.glide</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>낙하할 때 천천히 활강합니다. <br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>경고:<mark class='code'>§r</mark> <mark class='name'>NoFall</mark>을 사용하지 않으면 낙하 피해를 입을 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'><mark class='name'>Glide</mark> slowly when falling.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark> WARNING: <mark class='code'>§r</mark> You may take fall damage if you do not use <mark class='name'>NoFall</mark>.</span></td>
+      <td>Makes you glide down slowly when falling.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> You will take fall damage if you don&#x27;t use <mark class='name'>NoFall</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.handnoclip</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>벽을 통해 특정 블록에 접근할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Certain blocks can be accessed through walls.</span></td>
+      <td>Allows you to reach specific blocks through walls.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.headroll</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "player" (entity.minecraft.player) as "플레이어", which is consistent with this translation.</span></td>
+      <td>항상 고개를 끄덕입니다. <br>다른 <mark class='mcname' title='"player" (entity.minecraft.player)'>플레이어</mark>에게만 표시됩니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>I always nod my head.<br>Only visible to other players.</span></td>
+      <td>Makes you nod all the time.<br>Only visible to other <mark class='mcname' title='플레이어'>players</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.healthtags</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "player" (entity.minecraft.player) as "플레이어", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"player" (entity.minecraft.player)'>플레이어</mark>의 체력을 이름표에 표시합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Displays the player&#x27;s health on their name tag.</span></td>
+      <td>Shows the health of <mark class='mcname' title='플레이어'>players</mark> in their nametags.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.highjump</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>더 높이 점프할 수 있게 해줍니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>주의:<mark class='code'>§r</mark> <mark class='name'>NoFall</mark>을 사용하지 않으면 낙하 피해를 입을 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to jump higher.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark> WARNING: You may take fall damage if you do not use <mark class='code'>§r</mark> <mark class='name'>NoFall</mark>.</span></td>
+      <td>Allows you to jump higher.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> You will take fall damage if you don&#x27;t use <mark class='name'>NoFall</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.infinichat</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;[§6][§l]NOTICE:[§r] Not recommended for talking to people. Most servers will cut messages to 256 characters on their end.&quot; (low impact), &quot;[§6][§l] Note: [§r] Not recommended for conversation. Most servers limit messages to 256 characters.&quot; (low impact)'>different meaning</abbr> than the original.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "chat" (chat.editBox) as "대화", but this translation says "채팅" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td><mark class='error no-expand' title='"chat", which Minecraft translates as "대화" (chat.editBox).'>채팅</mark>에서 256자 제한을 없애줍니다.<br><mark class='name'>NBT</mark> 데이터를 수정하는 긴 명령어에 유용합니다.<br><br><mark class='code'>§6</mark><mark class='code'>§l</mark>주의:<mark class='code'>§r</mark> 대화를 위해 권장되지 않습니다. 대부분의 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>는 메시지를 256자로 제한합니다.</td>
+      <td>Removes the 256 character limit in chat.<br>Useful for long commands that modify <mark class='name'>NBT</mark> data.<br><br><mark class='code'>§6</mark><mark class='code'>§l</mark> Note: <mark class='code'>§r</mark> Not recommended for conversation. Most servers limit messages to 256 characters.</td>
+      <td>Removes the 256 character limit from the <mark class='mcname' title='대화'>chat</mark>.<br>Useful for long commands that modify <mark class='name'>NBT</mark> data.<br><br><mark class='code'>§6</mark><mark class='code'>§l</mark>NOTICE:<mark class='code'>§r</mark> Not recommended for talking to people. Most <mark class='mcname' title='서버'>servers</mark> will cut messages to 256 characters on their end.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.instantbunker</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>자신 주위에 작은 벙커를 만듭니다. 57개의 블록이 필요합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Creates a small bunker around yourself. 57 blocks are required.</span></td>
+      <td>Builds a small bunker around you. Needs 57 blocks.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.invwalk</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "inventory" (container.inventory) as "보관함", but this translation says "인벤토리" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='error no-expand' title='"inventory", which Minecraft translates as "보관함" (container.inventory).'>인벤토리</mark>가 열려있는 동안에도 움직일 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to move while your inventory is open.</span></td>
+      <td>Allows you to move around while the <mark class='mcname' title='보관함'>inventory</mark> is open.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.invwalk.allow_clickgui</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='name'>Wurst</mark>의 <mark class='name'>ClickGUI</mark>가 열려있는 동안에도 움직일 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows movement while <mark class='name'>Wurst</mark>&#x27;s <mark class='name'>ClickGUI</mark> is open.</span></td>
+      <td>Allows you to move around while <mark class='name'>Wurst</mark>&#x27;s <mark class='name'>ClickGUI</mark> is open.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.invwalk.allow_other</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "chest" (block.minecraft.chest) as "상자", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "horse" (entity.minecraft.horse) as "말", which is consistent with this translation.</span></td>
+      <td>다른 게임 내 화면(<mark class='mcname' title='"chest" (block.minecraft.chest)'>상자</mark>, <mark class='mcname' title='"horse" (entity.minecraft.horse)'>말</mark>, 주민 거래 등)이 열려있는 동안에도 움직일 수 있게 해줍니다. 다만 텍스트 <mark class='mcname' title='"chest" (block.minecraft.chest)'>상자</mark>가 있는 경우에는 예외입니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows movement while other in-game screens (chests, horses, villager trades, etc.) are open. The only exception is if you have a textbox.</span></td>
+      <td>Allows you to move around while other in-game screens are open (e.g. <mark class='mcname' title='상자'>chest</mark>, <mark class='mcname' title='말'>horse</mark>, villager trading), unless the screen has a text box.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.itemesp</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "item" (entity.minecraft.item) as "아이템", which is consistent with this translation.</span><br><span class='info'><b>Info:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;Highlights&quot;, &quot;nearby&quot;, &quot;items&quot;, &quot;Emphasize&quot;, &quot;surrounding&quot;, &quot;items&quot;. ChatGPT thinks none of these differences have any impact on the meaning, but still concluded that the meaning is different. ¯\_(ツ)_/¯'>different meaning</abbr> than the original, but its reasoning makes no sense.</span></td>
+      <td>주변 <mark class='mcname' title='"item" (entity.minecraft.item)'>아이템</mark>을 강조합니다.</td>
+      <td>Emphasize surrounding items.</td>
+      <td>Highlights nearby <mark class='mcname' title='아이템'>items</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.itemgenerator</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "Creative mode" (gameMode.creative) as "크리에이티브 모드", which is consistent with this translation.</span></td>
+      <td>랜덤 아이템을 생성하여 땅에 드롭합니다.<br><mark class='code'>§o</mark><mark class='mcname' title='"Creative mode" (gameMode.creative)'>크리에이티브 모드</mark> 전용입니다.<mark class='code'>§r</mark></td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Spawns a random item and drops it on the ground.<br><mark class='code'>§o</mark>Creative mode only.<mark class='code'>§r</mark></span></td>
+      <td>Generates random items and drops them on the ground.<br><mark class='code'>§o</mark><mark class='mcname' title='크리에이티브 모드'>Creative mode</mark> only.<mark class='code'>§r</mark></td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.jesus</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Name "Jesus" is present in the original but not in the translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "water" (block.minecraft.water) as "물", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"water" (block.minecraft.water)'>물</mark> 위를 걸을 수 있게 해줍니다.<br>이 해킹은 약 2000년 전에 예수님이 사용했습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to walk on water.<br>This hack was used by <mark class='name'>Jesus</mark> about 2000 years ago.</span></td>
+      <td>Allows you to walk on <mark class='mcname' title='물'>water</mark>.<br><mark class='name'>Jesus</mark> used this hack ~2000 years ago.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.jetpack</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>마치 제트팩을 가지고 있는 것처럼 날 수 있게 해줍니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>주의:<mark class='code'>§r</mark> <mark class='name'>NoFall</mark>을 사용하지 않으면 낙하 피해를 입을 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>It lets you fly as if you had a jetpack.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark> WARNING: You may take fall damage if you do not use <mark class='code'>§r</mark> <mark class='name'>NoFall</mark>.</span></td>
+      <td>Allows you to fly as if you had a jetpack.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> You will take fall damage if you don&#x27;t use <mark class='name'>NoFall</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.kaboom</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>주변 블록을 폭발처럼 부숩니다.<br>서버에 <mark class='name'>NoCheat+</mark>가 없다면 <mark class='name'>Nuker</mark>보다 훨씬 빠를 수 있습니다. 빠른 도구와 약한 블록과 함께 사용하는 것이 가장 효과적입니다.<br>참고: 실제로 폭발하는 것은 아닙니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Breaks nearby blocks like an explosion.<br>If your server doesn&#x27;t have <mark class='name'>NoCheat+</mark>, it can be much faster than <mark class='name'>Nuker</mark>. It is most effective when used with fast tools and weak blocks.<br>Note: It does not actually explode.</span></td>
+      <td>Breaks blocks around you like an explosion.<br>This can be a lot faster than <mark class='name'>Nuker</mark> if the server doesn&#x27;t have <mark class='name'>NoCheat+</mark>. It works best with fast tools and weak blocks.<br>Note: This is not an actual explosion.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.killauralegit</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>감지가 어려운 느린 <mark class='name'>Killaura</mark>입니다.<br>일반적인 <mark class='name'>NoCheat+</mark> 서버에서는 필요하지 않습니다!</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>A slow <mark class='name'>Killaura</mark> that is difficult to detect.<br>On normal <mark class='name'>NoCheat+</mark> servers you don&#x27;t need it!</span></td>
+      <td>Slower <mark class='name'>Killaura</mark> that is harder to detect.<br>Not required on normal <mark class='name'>NoCheat+</mark> servers!</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.killaura</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>자동으로 주변의 개체를 공격합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically attack nearby objects.</span></td>
+      <td>Automatically attacks entities around you.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.killpotion</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "potion" (entity.minecraft.potion) as "물약", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "Creative mode" (gameMode.creative) as "크리에이티브 모드", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "player" (entity.minecraft.player) as "플레이어", which is consistent with this translation.</span></td>
+      <td>모든 것을 죽일 수 있는 <mark class='mcname' title='"potion" (entity.minecraft.potion)'>물약</mark>을 생성합니다. <mark class='mcname' title='"Creative mode" (gameMode.creative)'>크리에이티브 모드</mark>의 <mark class='mcname' title='"player" (entity.minecraft.player)'>플레이어</mark>를 포함하여 거의 모든 것을 죽일 수 있습니다. 이미 죽은 언데드 몹에는 작동하지 않습니다.<br><br><mark class='mcname' title='"Creative mode" (gameMode.creative)'>크리에이티브 모드</mark>가 필요합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Creates a potion that can kill anything. It can kill almost anything, including players in creative mode. Doesn&#x27;t work on already dead undead mobs.<br><br>Creative mode required.</span></td>
+      <td>Generates a <mark class='mcname' title='물약'>potion</mark> that can kill almost anything, including <mark class='mcname' title='플레이어'>players</mark> in <mark class='mcname' title='크리에이티브 모드'>Creative mode</mark>. Does not work on undead mobs, since they are already dead.<br><br>Requires <mark class='mcname' title='크리에이티브 모드'>Creative mode</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.liquids</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>액체 안에 블록을 배치할 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to place blocks in liquid.</span></td>
+      <td>Allows you to place blocks in liquids.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.lsd</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>환각을 유발합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>It causes hallucinations.</span></td>
+      <td>Causes hallucinations.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.masstpa</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>모든 플레이어에게 <mark class='name'>TPA</mark> 요청을 보냅니다.<br>누군가 수락하면 멈춥니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Send a <mark class='name'>TPA</mark> request to all players.<br>It stops when someone accepts.</span></td>
+      <td>Sends a <mark class='name'>TPA</mark> request to all players.<br>Stops if someone accepts.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.mileycyrus</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>트워킹을 할 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>It allows you to twerk.</span></td>
+      <td>Makes you twerk.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.mobesp</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>주변의 몹을 강조합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Emphasizes nearby mobs.</span></td>
+      <td>Highlights nearby mobs.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.mobspawnesp</td>
+      <td><span class='error'><b>Error:</b>&nbsp;The color "yellow" was not translated.</span><br><span class='error'><b>Error:</b>&nbsp;The color "red" was not translated.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>몹이 생성될 수 있는 영역을 강조합니다.<br><mark class='code'>§e</mark>yellow<mark class='code'>§r</mark> - 밤에 몹이 생성될 수 있음<br><mark class='code'>§c</mark>red<mark class='code'>§r</mark> - 몹이 항상 생성됨</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Highlights areas where mobs can spawn.<br><mark class='code'>§e</mark>yelow<mark class='code'>§r</mark> - mobs can spawn at night<br><mark class='code'>§c</mark>red<mark class='code'>§r</mark> - mobs always spawn</span></td>
+      <td>Highlights areas where mobs can spawn.<br><mark class='code'>§e</mark>yellow<mark class='code'>§r</mark> - mobs can spawn at night<br><mark class='code'>§c</mark>red<mark class='code'>§r</mark> - mobs can always spawn</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.multiaura</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>여러 개체를 동시에 공격하는 더 빠른 <mark class='name'>Killaura</mark>입니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>A faster <mark class='name'>Killaura</mark> that attacks multiple entities simultaneously.</span></td>
+      <td>Faster <mark class='name'>Killaura</mark> that attacks multiple entities at once.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nameprotect</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;Reversing the translation yields the original string.</span><br><span class='info'><b>Info:</b>&nbsp;This string is identical to Google Translate.</span></td>
+      <td>모든 플레이어 이름을 숨깁니다.</td>
+      <td><span class='good' title='Reversing the translation yields the original string.'>Hides all player names.</span></td>
+      <td>Hides all player names.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nametags</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>네임태그의 크기를 변경하여 항상 읽을 수 있게 해줍니다. 또한 웅크리는 플레이어의 네임태그를 볼 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Change the size of the name tag so it is always readable. It also allows you to see nametags for crouching players.</span></td>
+      <td>Changes the scale of the nametags so you can always read them. Also allows you to see the nametags of sneaking players.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.navigator</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='info'><b>Info:</b>&nbsp;This string is identical to Google Translate.</span></td>
+      <td>시간이 지남에 따라 사용자의 선호도를 학습하는 검색 가능한 <mark class='name'>GUI</mark>입니다.</td>
+      <td><span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>A searchable <mark class='name'>GUI</mark> that learns the user&#x27;s preferences over time.</span></td>
+      <td>A searchable <mark class='name'>GUI</mark> that learns your preferences over time.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.newchunks</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>자신 주변에 최근에 생성된 청크를 강조합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Emphasizes recently spawned chunks around you.</span></td>
+      <td>Highlights newly generated chunks around you.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nobackground</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "inventory" (container.inventory) as "보관함", but this translation says "인벤토리" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='error no-expand' title='"inventory", which Minecraft translates as "보관함" (container.inventory).'>인벤토리</mark>의 어두운 배경을 제거합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Removes the dark background of the inventory.</span></td>
+      <td>Removes the dark background behind <mark class='mcname' title='보관함'>inventories</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.noclip</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;A block (e.g. sand) must fall on your head to activate it.&quot; (medium impact), &quot;Blocks (e.g. sand) must fall overhead to activate.&quot; (medium impact), &quot;You will take damage while moving through blocks!&quot; (medium impact), &quot;WARNING: You may take damage while going through blocks!&quot; (low impact)'>different meaning</abbr> than the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "sand" (block.minecraft.sand) as "모래", which is consistent with this translation.</span></td>
+      <td>블록을 자유롭게 통과할 수 있게 해줍니다.<br>블록(예: <mark class='mcname' title='"sand" (block.minecraft.sand)'>모래</mark>)이 머리 위로 떨어져야 활성화됩니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>주의:<mark class='code'>§r</mark> 블록을 통과하는 동안 피해를 입을 수 있습니다!</td>
+      <td>Allows free passage through blocks.<br><span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>Blocks (e.g. sand) must fall overhead to activate.</span><br><br><mark class='code'>§c</mark><mark class='code'>§l</mark> WARNING: You may take damage while going through <mark class='code'>§r</mark> blocks!</td>
+      <td>Allows you to freely move through blocks.<br>A block (e.g. <mark class='mcname' title='모래'>sand</mark>) must fall on your head to activate it.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> You will take damage while moving through blocks!</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nocomcrash</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "Paper" (item.minecraft.paper) as "종이", but this translation says "Paper" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td><mark class='name'>Nocom</mark> 악용을 통해 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>를 지연시키고 충돌시킵니다.<br><mark class='name'><mark class='error no-expand' title='"Paper", which Minecraft translates as "종이" (item.minecraft.paper).'>Paper</mark></mark> <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 작동하지 않습니다. Vanilla, <mark class='name'>Spigot</mark> 및 <mark class='name'>Fabric</mark>에서 테스트된 작동합니다. 일부 <mark class='name'>AntiCheat</mark>s에 의해 비활성화될 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'><mark class='name'>Nocom</mark> exploit to lag and crash servers.<br>Doesn&#x27;t work on <mark class='name'>Paper</mark> servers. Works tested on Vanilla, <mark class='name'>Spigot</mark> and <mark class='name'>Fabric</mark>. May be disabled by some <mark class='name'>AntiCheat</mark>s.</span></td>
+      <td>Lags and crashes <mark class='mcname' title='서버'>servers</mark> using the <mark class='name'>Nocom</mark> exploit.<br>Does not work on <mark class='name'><mark class='mcname' title='종이'>Paper</mark></mark> <mark class='mcname' title='서버'>servers</mark>. Tested working on Vanilla, <mark class='name'>Spigot</mark>, and <mark class='name'>Fabric</mark>. Can be disabled by some <mark class='name'>AntiCheat</mark>s.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nofall</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Name "Protect" is present in the original but not in the translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>낙하 피해를 방지합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Prevents fall damage.</span></td>
+      <td><mark class='name'>Protect</mark>s you from fall damage.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nofireoverlay</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;This can cause you to burn to death without noticing.&quot; (low impact), &quot;CAUTION&quot; (low impact), &quot;This may cause third-party networks without your knowledge.&quot; (medium impact)'>different meaning</abbr> than the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "fire" (block.minecraft.fire) as "불", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"fire" (block.minecraft.fire)'>불</mark>에 탔을 때 오버레이를 차단합니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>주의:<mark class='code'>§r</mark> 이로 인해 알지 못하고 타사망할 수 있습니다.</td>
+      <td>Block overlays when burned.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark> <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>CAUTION</span>:<mark class='code'>§r</mark> <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>This may cause third-party networks without your knowledge.</span></td>
+      <td>Blocks the overlay when you are on <mark class='mcname' title='불'>fire</mark>.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> This can cause you to burn to death without noticing.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nohurtcam</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>피해를 입었을 때 흔들림 효과를 비활성화합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Disables the shake effect when taking damage.</span></td>
+      <td>Disables the shaking effect when you get hurt.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nolevitation</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;levitation effect&quot; (medium impact), &quot;get hit by a Shulker&quot; (low impact), &quot;boost effect&quot; (medium impact), &quot;shulker&quot; (low impact), &quot;synergistic effect&quot; (low impact)'>different meaning</abbr> than the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "Shulker" (entity.minecraft.shulker) as "셜커", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"Shulker" (entity.minecraft.shulker)'>셜커</mark>에게 피격당했을 때 상승 효과를 비활성화합니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>주의:<mark class='code'>§r</mark> 상승 효과가 이미 활성화된 상태에서 활성화하면 떨어질 것입니다!</td>
+      <td>Disables the <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>boost effect</span> when hit by a <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>shulker</span>.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark> WARNING: If you activate the <mark class='code'>§r</mark> <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>synergistic effect</span> while it is already active, it will fall!</td>
+      <td>Disables the levitation effect when you get hit by a <mark class='mcname' title='셜커'>Shulker</mark>.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> You will fall if you activate this while the levitation effect is already active!</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nooverlay</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "water" (block.minecraft.water) as "물", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "lava" (block.minecraft.lava) as "용암", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"water" (block.minecraft.water)'>물</mark>과 <mark class='mcname' title='"lava" (block.minecraft.lava)'>용암</mark>의 오버레이를 차단합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Blocks overlays of water and lava.</span></td>
+      <td>Blocks the overlays of <mark class='mcname' title='물'>water</mark> and <mark class='mcname' title='용암'>lava</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nopumpkin</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "pumpkin" (block.minecraft.pumpkin) as "호박", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"pumpkin" (block.minecraft.pumpkin)'>호박</mark>을 머리에 쓸 때 오버레이를 차단합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Block the overlay when putting the pumpkin on your head.</span></td>
+      <td>Blocks the overlay when wearing a <mark class='mcname' title='호박'>pumpkin</mark> on your head.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.noslowdown</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "soul sand" (block.minecraft.soul_sand) as "영혼 모래", which is consistent with this translation.</span></td>
+      <td>꿀, <mark class='mcname' title='"soul sand" (block.minecraft.soul_sand)'>영혼 모래</mark> 및 아이템 사용으로 인한 속도 감소 효과를 취소합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Cancels speed reduction effects from honey, soul sand, and item use.</span></td>
+      <td>Cancels slowness effects caused by honey, <mark class='mcname' title='영혼 모래'>soul sand</mark> and using items.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.noweather</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "weather" (soundCategory.weather) as "날씨", which is consistent with this translation.</span></td>
+      <td>클라이언트 측의 <mark class='mcname' title='"weather" (soundCategory.weather)'>날씨</mark>, 시간 및 달의 위상을 변경할 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to change the weather, time and moon phase on the client side.</span></td>
+      <td>Allows you to alter the client-side <mark class='mcname' title='날씨'>weather</mark>, time and moon phase.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.noweb</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "cobweb" (block.minecraft.cobweb) as "거미줄", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"cobweb" (block.minecraft.cobweb)'>거미줄</mark>에 갇히는 것을 방지합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Prevents getting caught in spider webs.</span></td>
+      <td>Prevents you from getting slowed down by <mark class='mcname' title='거미줄'>cobwebs</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nuker</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;destroys&quot; (medium impact)'>different meaning</abbr> than the original.</span></td>
+      <td>주변 블록을 자동으로 부수게 합니다.</td>
+      <td>Automatically <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>destroys</span> surrounding blocks.</td>
+      <td>Automatically breaks blocks around you.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.nukerlegit</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Name "AntiCheat" is present in the original but not in the translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>감지 플러그인을 우회하는 더 느린 <mark class='name'>Nuker</mark>입니다.<br>일반적인 <mark class='name'>NoCheat+</mark> 서버에서는 필요하지 않습니다!</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>A slower <mark class='name'>Nuker</mark> that bypasses detection plugins.<br>On normal <mark class='name'>NoCheat+</mark> servers you don&#x27;t need it!</span></td>
+      <td>Slower <mark class='name'>Nuker</mark> that bypasses all <mark class='name'>AntiCheat</mark> plugins.<br>Not required on normal <mark class='name'>NoCheat+</mark> servers!</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.openwateresp</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;not&quot; (low impact)'>different meaning</abbr> than the original.</span></td>
+      <td>&#x27;열린 물&#x27;에서 낚시를 하는지 여부를 보여주고 열린 물 계산에 사용되는 영역 주위에 상자를 그립니다.</td>
+      <td>Shows whether you are fishing in &#x27;open water&#x27; and draws a box around the area used for open water calculations.</td>
+      <td>Shows whether or not you are fishing in &#x27;open water&#x27; and draws a box around the area used for the open water calculation.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.overlay</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='info'><b>Info:</b>&nbsp;This string is identical to Google Translate.</span></td>
+      <td>블록을 채굴할 때마다 <mark class='name'>Nuker</mark> 애니메이션을 렌더링합니다.</td>
+      <td><span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>Renders a <mark class='name'>Nuker</mark> animation every time a block is mined.</span></td>
+      <td>Renders the <mark class='name'>Nuker</mark> animation whenever you mine a block.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.panic</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>활성화된 모든 해킹을 즉시 비활성화합니다.<br>이 기능을 사용할 때 주의하세요!</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Instantly disables all active hacks.<br>Be careful when using this feature!</span></td>
+      <td>Instantly turns off all enabled hacks.<br>Be careful with this one!</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.parkour</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "jump" (key.jump) as "점프", which is consistent with this translation.</span></td>
+      <td>블록 가장자리에 도달하면 자동으로 <mark class='mcname' title='"jump" (key.jump)'>점프</mark>합니다.<br>파쿠르와 <mark class='mcname' title='"jump" (key.jump)'>점프</mark>&#x27;n&#x27;런에 유용합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>When you reach the edge of a block, you will automatically jump.<br>Useful for parkour and jump &#x27;n&#x27; run.</span></td>
+      <td>Makes you <mark class='mcname' title='점프'>jump</mark> automatically when reaching the edge of a block.<br>Useful for parkours and <mark class='mcname' title='점프'>jump</mark>&#x27;n&#x27;runs.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.playeresp</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;ESP boxes of friends&quot; (low impact), &quot;Your friend&#x27;s ESP box&quot; (low impact)'>different meaning</abbr> than the original.</span></td>
+      <td>주변 플레이어를 강조합니다.<br>친구의 <mark class='name'>ESP</mark> 상자는 파란색으로 표시됩니다.</td>
+      <td>Emphasize nearby players.<br>Your friend&#x27;s <mark class='name'>ESP</mark> box will be blue.</td>
+      <td>Highlights nearby players.<br><mark class='name'>ESP</mark> boxes of friends will appear in blue.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.portalgui</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>포탈에서 <mark class='name'>GUI</mark>를 열 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to open a <mark class='name'>GUI</mark> from a portal.</span></td>
+      <td>Allows you to open <mark class='name'>GUI</mark>s in portals.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.potionsaver</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>정지 상태에서는 모든 물약 효과를 유지합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>While stationary, retains all potion effects.</span></td>
+      <td>Freezes all potion effects while you are standing still.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.prophuntesp</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td><mark class='name'>Prophunt</mark>에서 가짜 블록을 볼 수 있게 해줍니다.<br><mark class='name'>Mineplex</mark> <mark class='name'>Prophunt</mark>를 위해 제작되었으며, 다른 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 작동하지 않을 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to see fake blocks in Prohunt.<br>Built for <mark class='name'>Mineplex</mark> Prohunt, may not work on other servers.</span></td>
+      <td>Allows you to see fake blocks in <mark class='name'>Prophunt</mark>.<br>Made for <mark class='name'>Mineplex</mark> <mark class='name'>Prophunt</mark>. Might not work on other <mark class='mcname' title='서버'>servers</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.protect</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>가장 가까운 개체를 따라가고 다른 개체로부터 보호하는 봇입니다.<br>가장 가까운 개체 대신 특정 개체를 보호하려면 <mark class='name'>.protect</mark> 명령을 사용하세요.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>A bot that follows the nearest object and protects it from others.<br>Use the <mark class='name'>.protect</mark> command to protect a specific object instead of the nearest one.</span></td>
+      <td>A bot that follows the closest entity and protects it from other entities.<br>Use <mark class='name'>.protect</mark> to protect a specific entity instead of the closest one.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.radar</td>
+      <td><span class='error'><b>Error:</b>&nbsp;The color "red" was not translated.</span><br><span class='error'><b>Error:</b>&nbsp;The color "orange" was not translated.</span><br><span class='error'><b>Error:</b>&nbsp;The color "green" was not translated.</span><br><span class='error'><b>Error:</b>&nbsp;The color "gray" was not translated.</span><br><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;location&quot; (medium impact), &quot;entities&quot; (medium impact), &quot;players&quot; (low impact), &quot;monsters&quot; (low impact), &quot;animals&quot; (low impact), &quot;others&quot; (low impact), &quot;position&quot; (medium impact), &quot;objects&quot; (medium impact), &quot;player&quot; (low impact), &quot;Monster&quot; (low impact), &quot;Animals&quot; (low impact), &quot;Other&quot; (low impact)'>different meaning</abbr> than the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "player" (entity.minecraft.player) as "플레이어", which is consistent with this translation.</span></td>
+      <td>주변 개체의 위치를 보여줍니다.<br><mark class='code'>§c</mark>red<mark class='code'>§r</mark> - <mark class='mcname' title='"player" (entity.minecraft.player)'>플레이어</mark><br><mark class='code'>§6</mark>orange<mark class='code'>§r</mark> - 몬스터<br><mark class='code'>§a</mark>green<mark class='code'>§r</mark> - 동물<br><mark class='code'>§7</mark>gray<mark class='code'>§r</mark> - 기타</td>
+      <td>Shows the <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>location</span> of nearby <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>objects</span>.<br><mark class='code'>§c</mark>red<mark class='code'>§r</mark> - <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>player</span><br><mark class='code'>§6</mark>orange<mark class='code'>§r</mark> - <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>Monster</span><br><mark class='code'>§a</mark>green<mark class='code'>§r</mark> - <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>Animals</span><br><mark class='code'>§7</mark>gray<mark class='code'>§r</mark> - <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>Other</span></td>
+      <td>Shows the location of nearby entities.<br><mark class='code'>§c</mark>red<mark class='code'>§r</mark> - <mark class='mcname' title='플레이어'>players</mark><br><mark class='code'>§6</mark>orange<mark class='code'>§r</mark> - monsters<br><mark class='code'>§a</mark>green<mark class='code'>§r</mark> - animals<br><mark class='code'>§7</mark>gray<mark class='code'>§r</mark> - others</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.rainbowui</td>
+      <td><span class='error'><b>Error:</b>&nbsp;This string is still in English.</span><br><span class='info'><b>Info:</b>&nbsp;This string is identical to Google Translate.</span></td>
+      <td><mark class='code'>§c</mark>M<mark class='code'>§a</mark>a<mark class='code'>§9</mark>k<mark class='code'>§c</mark>e<mark class='code'>§a</mark>s <mark class='code'>§9</mark>e<mark class='code'>§c</mark>v<mark class='code'>§a</mark>e<mark class='code'>§9</mark>r<mark class='code'>§c</mark>y<mark class='code'>§a</mark>t<mark class='code'>§9</mark>h<mark class='code'>§c</mark>i<mark class='code'>§a</mark>n<mark class='code'>§9</mark>g <mark class='code'>§c</mark>c<mark class='code'>§a</mark>o<mark class='code'>§9</mark>l<mark class='code'>§c</mark>o<mark class='code'>§a</mark>r<mark class='code'>§9</mark>f<mark class='code'>§c</mark>u<mark class='code'>§a</mark>l<mark class='code'>§9</mark>.</td>
+      <td><span class='good' title='Reversing the translation yields the original string.'><mark class='code'>§c</mark>M<mark class='code'>§a</mark>a<mark class='code'>§9</mark>k<mark class='code'>§c</mark>e<mark class='code'>§a</mark>s <mark class='code'>§9</mark>e<mark class='code'>§c</mark>v<mark class='code'>§a</mark>e<mark class='code'>§9</mark>r<mark class='code'>§c</mark>y<mark class='code'>§a</mark>t<mark class='code'>§9</mark>h<mark class='code'>§c</mark>i<mark class='code'>§a</mark>n<mark class='code'>§9</mark>g <mark class='code'>§c</mark>c<mark class='code'>§a</mark>o<mark class='code'>§9</mark>l<mark class='code'>§c</mark>o<mark class='code'>§a</mark>r<mark class='code'>§9</mark>f<mark class='code'>§c</mark>u<mark class='code'>§a</mark>l<mark class='code'>§9</mark>.</span></td>
+      <td><mark class='code'>§c</mark>M<mark class='code'>§a</mark>a<mark class='code'>§9</mark>k<mark class='code'>§c</mark>e<mark class='code'>§a</mark>s <mark class='code'>§9</mark>e<mark class='code'>§c</mark>v<mark class='code'>§a</mark>e<mark class='code'>§9</mark>r<mark class='code'>§c</mark>y<mark class='code'>§a</mark>t<mark class='code'>§9</mark>h<mark class='code'>§c</mark>i<mark class='code'>§a</mark>n<mark class='code'>§9</mark>g <mark class='code'>§c</mark>c<mark class='code'>§a</mark>o<mark class='code'>§9</mark>l<mark class='code'>§c</mark>o<mark class='code'>§a</mark>r<mark class='code'>§9</mark>f<mark class='code'>§c</mark>u<mark class='code'>§a</mark>l<mark class='code'>§9</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.reach</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>더 멀리 뻗을 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>It allows you to reach farther.</span></td>
+      <td>Allows you to reach further.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.remoteview</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "world" (pack.source.world) as "세계", which is consistent with this translation.</span></td>
+      <td>다른 사람으로서 <mark class='mcname' title='"world" (pack.source.world)'>세계</mark>를 볼 수 있게 해줍니다.<br><mark class='name'>.rv</mark> 명령을 사용하여 특정 개체를 대상으로 설정할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>It allows you to see the world as a different person.<br>You can target specific objects using the <mark class='name'>.rv</mark> command.</span></td>
+      <td>Allows you to see the <mark class='mcname' title='세계'>world</mark> as someone else.<br>Use the <mark class='name'>.rv</mark> command to make it target a specific entity.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.restock</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "inventory" (container.inventory) as "보관함", but this translation says "인벤토리" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='error no-expand' title='"inventory", which Minecraft translates as "보관함" (container.inventory).'>인벤토리</mark>에서 선택한 아이템으로 손을 자동으로 보충합니다. <mark class='name'>FastPlace</mark>와 함께 사용할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically replenish your hand with selected items from your inventory. Can be used with <mark class='name'>FastPlace</mark>.</span></td>
+      <td>Automatically restocks your hand with the selected items from your <mark class='mcname' title='보관함'>inventory</mark>. Works better with <mark class='name'>FastPlace</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.safewalk</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>벽 끝에서 떨어지지 않도록 합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Make sure not to fall off the end of the wall.</span></td>
+      <td>Prevents you from falling off edges.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.scaffoldwalk</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>자동으로 발 아래에 블록을 배치합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically places blocks under your feet.</span></td>
+      <td>Automatically places blocks below your feet.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.search</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>무지개 색상으로 강조하여 특정 블록을 찾는 데 도움을 줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Helps you find specific blocks by highlighting them with a rainbow of colors.</span></td>
+      <td>Helps you to find specific blocks by highlighting them in rainbow color.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.servercrasher</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;Generates&quot; (medium impact), &quot;that can crash&quot; (medium impact), &quot;1.15.x servers&quot; (low impact), &quot;Creates&quot; (medium impact), &quot;a 1.15.x version server&quot; (low impact)'>different meaning</abbr> than the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "item" (entity.minecraft.item) as "아이템", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "Creative mode" (gameMode.creative) as "크리에이티브 모드", which is consistent with this translation.</span></td>
+      <td>1.15.x 버전 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>를 충돌시킬 수 있는 <mark class='mcname' title='"item" (entity.minecraft.item)'>아이템</mark>을 생성합니다.<br><mark class='code'>§o</mark><mark class='mcname' title='"Creative mode" (gameMode.creative)'>크리에이티브 모드</mark> 전용.<mark class='code'>§r</mark></td>
+      <td><span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>Creates</span> an item <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>that can crash</span> <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>a 1.15.x version server</span>.<br><mark class='code'>§o</mark>Creative mode only.<mark class='code'>§r</mark></td>
+      <td>Generates an <mark class='mcname' title='아이템'>item</mark> that can crash 1.15.x <mark class='mcname' title='서버'>server</mark>s.<br><mark class='code'>§o</mark><mark class='mcname' title='크리에이티브 모드'>Creative mode</mark> only.<mark class='code'>§r</mark></td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.skinderp</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>스킨의 일부를 무작위로 전환합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Randomly switch parts of skins.</span></td>
+      <td>Randomly toggles parts of your skin.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.sneak</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='info'><b>Info:</b>&nbsp;Minecraft translates "sneak" (key.sneak) as "웅크리기".</span></td>
+      <td>자동으로 웅크리게 합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Crouch automatically.</span></td>
+      <td>Makes you sneak automatically.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.snowshoe</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "powder snow" (block.minecraft.powder_snow) as "가루눈", but this translation says "파우더 눈" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;Reversing the translation yields the original string.</span></td>
+      <td><mark class='error no-expand' title='"powder snow", which Minecraft translates as "가루눈" (block.minecraft.powder_snow).'>파우더 눈</mark> 위에서 걸을 수 있게 해줍니다.</td>
+      <td><span class='good' title='Reversing the translation yields the original string.'>Allows you to walk on powder snow.</span></td>
+      <td>Allows you to walk on <mark class='mcname' title='가루눈'>powder snow</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.speedhack</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>달리기와 점프로 할 때보다 약 2.5배 더 빠르게 달릴 수 있게 해줍니다.<br><br><mark class='code'>§6</mark><mark class='code'>§l</mark>주의:<mark class='code'>§r</mark> <mark class='name'>NoCheat+</mark> 버전 3.13.2에서 패치되었습니다. 이전 버전의 <mark class='name'>NoCheat+</mark>에서만 우회됩니다.<br>서버의 <mark class='name'>NoCheat+</mark> 버전을 확인하려면 <mark class='code'>§l</mark><mark class='name'>/ncp version</mark><mark class='code'>§r</mark>을 입력하세요.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to run about 2.5 times faster than you can with running and jumping.<br><br><mark class='code'>§6</mark><mark class='code'>§l</mark> Note: <mark class='code'>§r</mark> Patched in <mark class='name'>NoCheat+</mark> version 3.13.2. This is only bypassed in older versions of <mark class='name'>NoCheat+</mark>.<br>To check your server&#x27;s <mark class='name'>NoCheat+</mark> version, type <mark class='code'>§l</mark><mark class='name'>/ncp version</mark><mark class='code'>§r</mark>.</span></td>
+      <td>Allows you to run ~2.5x faster than you would by sprinting and jumping.<br><br><mark class='code'>§6</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> Patched in <mark class='name'>NoCheat+</mark> version 3.13.2. Will only bypass older versions of <mark class='name'>NoCheat+</mark>.<br>Type <mark class='code'>§l</mark><mark class='name'>/ncp version</mark><mark class='code'>§r</mark> to check a server&#x27;s <mark class='name'>NoCheat+</mark> version.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.speednuker</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='name'>NoCheat+</mark>를 우회할 수 없는 더 빠른 버전의 <mark class='name'>Nuker</mark>입니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>A faster version of <mark class='name'>Nuker</mark> that cannot bypass <mark class='name'>NoCheat+</mark>.</span></td>
+      <td>Faster version of <mark class='name'>Nuker</mark> that cannot bypass <mark class='name'>NoCheat+</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.spider</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "spider" (entity.minecraft.spider) as "거미", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"spider" (entity.minecraft.spider)'>거미</mark>처럼 벽을 타고 올라갈 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to climb walls like a spider.</span></td>
+      <td>Allows you to climb up walls like a <mark class='mcname' title='거미'>spider</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.step</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>전체 블록을 올라갈 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to climb entire blocks.</span></td>
+      <td>Allows you to step up full blocks.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.throw</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "minecart" (entity.minecraft.minecart) as "광산 수레", but this translation says "마인카트" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "snowball" (entity.minecraft.snowball) as "눈덩이", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "egg" (item.minecraft.egg) as "달걀", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td>아이템을 여러 번 사용합니다. 매우 많은 양으로 <mark class='mcname' title='"snowball" (entity.minecraft.snowball)'>눈덩이</mark>와 <mark class='mcname' title='"egg" (item.minecraft.egg)'>달걀</mark>을 던지거나 몹을 소환하고 <mark class='error no-expand' title='"minecart", which Minecraft translates as "광산 수레" (entity.minecraft.minecart).'>마인카트</mark>를 놓는 등의 작업에 사용할 수 있습니다.<br><br>이로 인해 많은 랙이 발생하거나 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>가 충돌할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Use the item multiple times. It can be used in very large quantities to throw snowballs and eggs, summon mobs, place minecarts, and more.<br><br>This can cause a lot of lag or crash the server.</span></td>
+      <td>Uses an item multiple times. Can be used to throw <mark class='mcname' title='눈덩이'>snowballs</mark> and <mark class='mcname' title='달걀'>eggs</mark>, spawn mobs, place <mark class='mcname' title='광산 수레'>minecarts</mark>, etc. in very large quantities.<br><br>This can cause a lot of lag and even crash a <mark class='mcname' title='서버'>server</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.tillaura</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "dirt" (block.minecraft.dirt) as "흙", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "grass" (block.minecraft.grass) as "잔디", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "farmland" (block.minecraft.farmland) as "경작지", which is consistent with this translation.</span></td>
+      <td>자동으로 <mark class='mcname' title='"dirt" (block.minecraft.dirt)'>흙</mark>, <mark class='mcname' title='"grass" (block.minecraft.grass)'>잔디</mark> 등을 <mark class='mcname' title='"farmland" (block.minecraft.farmland)'>경작지</mark>로 변환합니다.<br><mark class='name'>Killaura</mark>와 혼동하지 마세요.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically convert dirt, grass, etc. to farmland.<br>Not to be confused with <mark class='name'>Killaura</mark>.</span></td>
+      <td>Automatically turns <mark class='mcname' title='흙'>dirt</mark>, <mark class='mcname' title='잔디'>grass</mark>, etc. into <mark class='mcname' title='경작지'>farmland</mark>.<br>Not to be confused with <mark class='name'>Killaura</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.timer</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;Reversing the translation yields the original string.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "speed" (attribute.name.generic.movement_speed) as "속도", which is consistent with this translation.</span><br><span class='info'><b>Info:</b>&nbsp;This string is identical to Google Translate.</span></td>
+      <td>거의 모든 것의 <mark class='mcname' title='"speed" (attribute.name.generic.movement_speed)'>속도</mark>를 변경합니다.</td>
+      <td><span class='good' title='Reversing the translation yields the original string.'>Changes the speed of almost everything.</span></td>
+      <td>Changes the <mark class='mcname' title='속도'>speed</mark> of almost everything.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.tired</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>2015년 4월 <mark class='name'>Alexander</mark>와 비슷한 모습으로 보입니다.<br>다른 플레이어에게만 보입니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Looks similar to <mark class='name'>Alexander</mark> in April 2015.<br>Only visible to other players.</span></td>
+      <td>Makes you look like <mark class='name'>Alexander</mark> back in April 2015.<br>Only visible to other players.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.toomanyhax</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "feature" (pack.source.feature) as "기능", which is consistent with this translation.</span></td>
+      <td>원치 않는 <mark class='mcname' title='"feature" (pack.source.feature)'>기능</mark>을 차단합니다.<br>잘못된 해킹을 우연히 활성화하여 밴을 당하는 것을 방지할 수 있습니다.<br>&#x27;조금만 해킹하려는&#x27; 사람들을 위한 <mark class='mcname' title='"feature" (pack.source.feature)'>기능</mark>입니다.<br><br><mark class='code'>§6</mark><mark class='name'>.toomanyhax</mark><mark class='code'>§r</mark> 명령을 사용하여 어떤 <mark class='mcname' title='"feature" (pack.source.feature)'>기능</mark>을 차단할지 선택할 수 있습니다.<br>자세한 내용은 <mark class='code'>§6</mark><mark class='name'>.help toomanyhax</mark><mark class='code'>§r</mark>를 입력하세요.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Block unwanted features.<br>You can avoid getting banned by accidentally activating the wrong hack.<br>This feature is for those who are &#x27;just a little bit hacky&#x27;.<br><br>You can choose which features to block using the <mark class='code'>§6</mark><mark class='name'>.toomanyhax</mark><mark class='code'>§r</mark> command.<br>Type <mark class='code'>§6</mark><mark class='name'>.help toomanyhax</mark><mark class='code'>§r</mark> for more information.</span></td>
+      <td>Blocks any <mark class='mcname' title='기능'>features</mark> that you don&#x27;t want.<br>Allows you to make sure that you don&#x27;t accidentally enable the wrong hack and get banned for it.<br>For those who want to &quot;only hack a little bit&quot;.<br><br>Use the <mark class='code'>§6</mark><mark class='name'>.toomanyhax</mark><mark class='code'>§r</mark> command to choose which <mark class='mcname' title='기능'>features</mark> to block.<br>Type <mark class='code'>§6</mark><mark class='name'>.help toomanyhax</mark><mark class='code'>§r</mark> for more info.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.tp-aura</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>텔레포트를 하면서 가장 가까운 유효한 개체를 자동으로 공격합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>While teleporting, it will automatically attack the nearest valid object.</span></td>
+      <td>Automatically attacks the closest valid entity while teleporting around it.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.trajectories</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "arrow" (entity.minecraft.arrow) as "화살", which is consistent with this translation.</span></td>
+      <td><mark class='mcname' title='"arrow" (entity.minecraft.arrow)'>화살</mark>과 던져지는 아이템의 비행 경로를 예측합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Predict the flight path of arrows and thrown items.</span></td>
+      <td>Predicts the flight path of <mark class='mcname' title='화살'>arrows</mark> and throwable items.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.treebot</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>자동으로 주위를 돌아다니며 나무를 베어냅니다.<br>현재는 작은 나무에만 사용 가능합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically walks around and cuts down trees.<br>Currently only available for small trees.</span></td>
+      <td>An experimental bot that automatically walks around and chops down trees.<br>Limited to small trees for now.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.triggerbot</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>시선을 던지고 있는 개체를 자동으로 공격합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically attack the object you are casting your gaze on.</span></td>
+      <td>Automatically attacks the entity you&#x27;re looking at.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.trollpotion</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "potion" (entity.minecraft.potion) as "물약", which is consistent with this translation.</span></td>
+      <td>짜증나는 효과가 많은 <mark class='mcname' title='"potion" (entity.minecraft.potion)'>물약</mark>을 생성합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Creates a potion with many annoying effects.</span></td>
+      <td>Generates a <mark class='mcname' title='물약'>potion</mark> with many annoying effects on it.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.truesight</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>투명한 개체를 볼 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to see transparent objects.</span></td>
+      <td>Allows you to see invisible entities.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.tunneller</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "lava" (block.minecraft.lava) as "용암", which is consistent with this translation.</span></td>
+      <td>터널을 자동으로 파줍니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>주의:<mark class='code'>§r</mark> 이 봇은 <mark class='mcname' title='"lava" (block.minecraft.lava)'>용암</mark> 및 기타 위험을 피하려고 노력하지만, 죽지 않을 보장은 없습니다. 잃어도 괜찮은 장비를 가지고 보내세요.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Automatically digs tunnels.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark> WARNING:<mark class='code'>§r</mark> This bot will try to avoid lava and other hazards, but there is no guarantee that it will not die. Send with equipment you don&#x27;t mind losing.</span></td>
+      <td>Automatically digs a tunnel.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> Although this bot will try to avoid <mark class='mcname' title='용암'>lava</mark> and other dangers, there is no guarantee that it won&#x27;t die. Only send it out with gear that you don&#x27;t mind losing.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.hack.x-ray</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>벽을 통해 광물을 볼 수 있게 해줍니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Allows you to see minerals through walls.</span></td>
+      <td>Allows you to see ores through walls.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.other_feature.nochatreports</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;Disables the cryptographic signatures that since 1.19 are attached to your chat messages.&quot; (medium impact), &quot;your Minecraft account can get reported and globally banned from multiplayer!&quot; (medium impact), &quot;create a fake chat report that gets your account banned unfairly.&quot; (medium impact), &quot;If you have to re-enable chat signatures to chat on a server, consider playing on an alt account that you don&#x27;t mind losing.&quot; (low impact), &quot;As of version 1.19, disable cryptographic signatures attached to chat messages.&quot; (medium impact), &quot;your account may be reported and you may get a global ban from multiplayer!&quot; (medium impact), &quot;signed messages can sometimes create fake chat reports and unfairly ban your account.&quot; (medium impact), &quot;If you want to re-enable chat signatures to chat, consider playing on an alternate account rather than your account.&quot; (low impact)'>different meaning</abbr> than the original.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "multiplayer" (key.categories.multiplayer) as "멀티플레이", but this translation says "멀티플레이어" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Formatting codes have changed: §c§l§c§c§c§c§c§c§c§c§c§c§c§c§c§c§c§c§c§c§r -> §c§l§c§c§c§c§c§c§c§c§c§c§c§c§c§r</span></td>
+      <td>1.19 버전부터 채팅 메시지에 첨부되는 암호화 서명을 비활성화합니다.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>주의: <mark class='code'>§c</mark>채팅에 <mark class='code'>§c</mark>서명을 <mark class='code'>§c</mark>첨부하여 <mark class='code'>§c</mark>메시지를 <mark class='code'>§c</mark>보내면 <mark class='code'>§c</mark>계정이 <mark class='code'>§c</mark>신고되어 <mark class='code'>§c</mark><mark class='error no-expand' title='"multiplayer", which Minecraft translates as "멀티플레이" (key.categories.multiplayer).'>멀티플레이어</mark>에서 <mark class='code'>§c</mark>글로벌 <mark class='code'>§c</mark>밴 <mark class='code'>§c</mark>처리될 <mark class='code'>§c</mark>수 <mark class='code'>§c</mark>있습니다!<mark class='code'>§r</mark><br><br>채팅에서 무해한 내용을 말한다고 해도, 서명된 메시지는 가짜 채팅 신고를 생성하여 계정이 불공정하게 밴 처리되는 경우가 있을 수 있습니다.<br><br>채팅 서명을 다시 활성화하여 채팅을 하려면 계정이 아닌 대체 계정에서 플레이하는 것을 고려하세요.</td>
+      <td><span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>As of version 1.19, disable cryptographic signatures attached to chat messages.</span><br><br><mark class='code'>§c</mark><mark class='code'>§l</mark> Caution: If you <mark class='code'>§c</mark> send a <mark class='code'>§c</mark> message with a <mark class='code'>§c</mark> signature <mark class='code'>§c</mark> attached to the <mark class='code'>§c</mark> chat, the <mark class='code'>§c</mark> account will be <mark class='code'>§c</mark> reported and will be <mark class='code'>§c</mark> global <mark class='code'>§c</mark> ban <mark class='code'>§c</mark> in <mark class='code'>§c</mark> multiplayer <mark class='code'>§c</mark> Can <mark class='code'>§c</mark>!<mark class='code'>§r</mark><br><br>Even if you say innocuous things in chat, <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (medium impact).'>signed messages can sometimes create fake chat reports and unfairly ban your account.</span><br><br><span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>If you want to re-enable chat signatures to chat, consider playing on an alternate account rather than your account.</span></td>
+      <td>Disables the cryptographic signatures that since 1.19 are attached to your chat messages.<br><br><mark class='code'>§c</mark><mark class='code'>§l</mark>WARNING: <mark class='code'>§c</mark>If <mark class='code'>§c</mark>you <mark class='code'>§c</mark>send <mark class='code'>§c</mark>chat <mark class='code'>§c</mark>messages <mark class='code'>§c</mark>with <mark class='code'>§c</mark>signatures, <mark class='code'>§c</mark>your <mark class='code'>§c</mark>Minecraft <mark class='code'>§c</mark>account <mark class='code'>§c</mark>can <mark class='code'>§c</mark>get <mark class='code'>§c</mark>reported <mark class='code'>§c</mark>and <mark class='code'>§c</mark>globally <mark class='code'>§c</mark>banned <mark class='code'>§c</mark>from <mark class='code'>§c</mark><mark class='mcname' title='멀티플레이'>multiplayer</mark>!<mark class='code'>§r</mark><br><br>Even if you only say harmless things in chat, your signed messages can be abused to create a fake chat report that gets your account banned unfairly.<br><br>If you have to re-enable chat signatures to chat on a server, consider playing on an alt account that you don&#x27;t mind losing.</td>
+    </tr>
+    <tr>
+      <td>button.wurst.nochatreports.disable_signatures</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='info'><b>Info:</b>&nbsp;This string is identical to Google Translate.</span></td>
+      <td>서명 비활성화</td>
+      <td><span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>disable signing</span></td>
+      <td>Disable Signatures</td>
+    </tr>
+    <tr>
+      <td>button.wurst.nochatreports.re-enable_signatures</td>
+      <td><span class='info'><b>Info:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;Re-enable&quot;, &quot;Signatures&quot;, &quot;Activate&quot;, &quot;signature&quot;. ChatGPT thinks none of these differences have any impact on the meaning, but still concluded that the meaning is different. ¯\_(ツ)_/¯'>different meaning</abbr> than the original, but its reasoning makes no sense.</span></td>
+      <td>서명 활성화</td>
+      <td>Activate signature</td>
+      <td>Re-enable Signatures</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.generic.attack_speed</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "Attack speed" (attribute.name.generic.attack_speed) as "공격 속도", but this translation says "클릭 당 공격 속도" instead.</span><br><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "match" (painting.minecraft.match.title) as "Match", but this translation says "맞춰" instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "speed" (attribute.name.generic.movement_speed) as "속도", which is consistent with this translation.</span></td>
+      <td><mark class='error no-expand' title='"Attack speed", which Minecraft translates as "공격 속도" (attribute.name.generic.attack_speed).'>클릭 당 공격 속도</mark>입니다.<br>0 = 공격 대기 시간에 <mark class='error no-expand' title='"match", which Minecraft translates as "Match" (painting.minecraft.match.title).'>맞춰</mark> <mark class='mcname' title='"speed" (attribute.name.generic.movement_speed)'>속도</mark>를 동적으로 조절합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Attack rate per click.<br>0 = Dynamically adjust speed based on attack latency.</span></td>
+      <td><mark class='mcname' title='공격 속도'>Attack speed</mark> in clicks per second.<br>0 = dynamically adjusts the <mark class='mcname' title='속도'>speed</mark> to <mark class='mcname' title='Match'>match</mark> your attack cooldown.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.setting.generic.pause_attack_on_containers</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "chest" (block.minecraft.chest) as "상자", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "hopper" (block.minecraft.hopper) as "호퍼", which is consistent with this translation.</span></td>
+      <td>컨테이너 화면(<mark class='mcname' title='"chest" (block.minecraft.chest)'>상자</mark>, <mark class='mcname' title='"hopper" (block.minecraft.hopper)'>호퍼</mark> 등)이 열려 있을 때 공격하지 않습니다.<br><mark class='mcname' title='"chest" (block.minecraft.chest)'>상자</mark>와 비슷한 메뉴를 표시하는 미니게임 서버에 유용합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Does not attack when container screens (boxes, hoppers, etc.) are open.<br>Useful for minigame servers that display menus similar to chests.</span></td>
+      <td>Won&#x27;t attack while a container screen (<mark class='mcname' title='상자'>chest</mark>, <mark class='mcname' title='호퍼'>hopper</mark>, etc.) is open.<br>Useful for minigame servers that display <mark class='mcname' title='상자'>chest</mark>-like menus.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.altmanager.premium</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td>이 대체 계정은 비밀번호가 있으며 모든 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에 접속할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>This alternate account has a password and can access all servers.</span></td>
+      <td>This alt has a password and can join all <mark class='mcname' title='서버'>servers</mark>.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.altmanager.cracked</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>이 대체 계정은 비밀번호가 없으며 크랙 서버에서만 작동합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>This alternative account has no password and only works on crack servers.</span></td>
+      <td>This alt has no password and will only work on cracked servers.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.altmanager.failed</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>이 대체 계정으로 마지막으로 로그인 시도한 때 작동하지 않았습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>The last time I tried logging in with this alternate account, it didn&#x27;t work.</span></td>
+      <td>Last time you tried to log in with this alt, it didn&#x27;t work.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.altmanager.checked</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>비밀번호가 이전에 작동한 적이 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Your password has worked before.</span></td>
+      <td>The password has worked in the past.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.altmanager.unchecked</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>이 대체 계정으로 로그인에 성공한 적이 없습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Login has never been successful with this alternate account.</span></td>
+      <td>You have never successfully logged in with this alt.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.altmanager.favorite</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>이 대체 계정을 즐겨찾기로 표시했습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>You have marked this alternate account as a favorite.</span></td>
+      <td>You have marked this alt as one of your favorites.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.altmanager.window</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;Reversing the translation yields the original string.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "button" (mco.gui.button) as "버튼", which is consistent with this translation.</span></td>
+      <td>이 <mark class='mcname' title='"button" (mco.gui.button)'>버튼</mark>은 다른 창을 엽니다.</td>
+      <td><span class='good' title='Reversing the translation yields the original string.'>This button opens another window.</span></td>
+      <td>This <mark class='mcname' title='버튼'>button</mark> opens another window.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.altmanager.window_freeze</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "game" (createWorld.tab.game.title) as "게임", which is consistent with this translation.</span><br><span class='info'><b>Info:</b>&nbsp;This string is identical to Google Translate.</span></td>
+      <td>해당 창이 열려 있는 동안 <mark class='mcname' title='"game" (createWorld.tab.game.title)'>게임</mark>이 응답하지 않는 것처럼 보일 수 있습니다.</td>
+      <td><span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>The game may appear unresponsive while that window is open.</span></td>
+      <td>It might look like the <mark class='mcname' title='게임'>game</mark> is not responding while that window is open.</td>
+    </tr>
+    <tr>
+      <td>description.wurst.altmanager.fullscreen</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='code'>§c</mark>전체 화면 모드를 해제하세요!</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'><mark class='code'>§c</mark>Turn off full screen mode!</span></td>
+      <td><mark class='code'>§c</mark>Turn off fullscreen mode!</td>
+    </tr>
+    <tr>
+      <td>gui.wurst.altmanager.folder_error.title</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>&#x27;<mark class='name'>.Wurst encryption</mark>&#x27; 폴더를 생성할 수 없습니다!</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Could not create folder &#x27;<mark class='name'>.Wurst encryption</mark>&#x27;!</span></td>
+      <td>Couldn&#x27;t create the &#x27;<mark class='name'>.Wurst encryption</mark>&#x27; folder!</td>
+    </tr>
+    <tr>
+      <td>gui.wurst.altmanager.folder_error.message</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td><mark class='name'>Wurst</mark>가 이 폴더에 액세스할 수 없게 블록한 것 같습니다.<br><mark class='name'>AltManager</mark>는 이 폴더 없이 대체 계정 목록을 암호화하거나 복호화할 수 없습니다.<br><mark class='name'>AltManager</mark>를 계속 사용할 수 있지만, 이제 만드는 대체 계정은 저장되지 않습니다.<br><br>전체 오류는 다음과 같습니다:<br><mark class='code'>%s</mark></td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>It seems that <mark class='name'>Wurst</mark> has blocked access to this folder.<br><mark class='name'>AltManager</mark> cannot encrypt or decrypt alternate account lists without this folder.<br>You can still use <mark class='name'>AltManager</mark>, but any alternate accounts you create now will not be saved.<br><br>The full error is:<br><mark class='code'>%s</mark></span></td>
+      <td>You may have accidentally blocked <mark class='name'>Wurst</mark> from accessing this folder.<br><mark class='name'>AltManager</mark> cannot encrypt or decrypt your alt list without it.<br>You can still use <mark class='name'>AltManager</mark>, but any alts you create now won&#x27;t be saved.<br><br>The full error is as follows:<br><mark class='code'>%s</mark></td>
+    </tr>
+    <tr>
+      <td>gui.wurst.altmanager.empty.title</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;Possible inconsistency: Minecraft translates "empty" (mco.configure.world.slot.empty) as "비어 있음", but this translation says "비어 있습니다." instead.</span><br><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>대체 계정 목록이 <mark class='error no-expand' title='"empty", which Minecraft translates as "비어 있음" (mco.configure.world.slot.empty).'>비어 있습니다.</mark></td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Alternate account list is empty.</span></td>
+      <td>Your alt list is <mark class='mcname' title='비어 있음'>empty</mark>.</td>
+    </tr>
+    <tr>
+      <td>gui.wurst.altmanager.empty.message</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;random alts&quot; (low impact), &quot;random alternate accounts&quot; (low impact)'>different meaning</abbr> than the original.</span></td>
+      <td>시작하기 위해 일부 무작위 대체 계정을 원하시나요?</td>
+      <td>Want some random alternative accounts to start with?</td>
+      <td>Would you like some random alts to get started?</td>
+    </tr>
+    <tr>
+      <td>gui.wurst.nochatreports.unsafe_server.title</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;Unsafe&quot; (medium impact), &quot;Unsafe&quot; (medium impact)'>different meaning</abbr> than the original.</span></td>
+      <td><mark class='code'>§4</mark><mark class='code'>§l</mark>주의:<mark class='code'>§r</mark> 위험한 서버</td>
+      <td><mark class='code'>§4</mark><mark class='code'>§l</mark> WARNING:<mark class='code'>§r</mark> Dangerous Servers</td>
+      <td><mark class='code'>§4</mark><mark class='code'>§l</mark>WARNING:<mark class='code'>§r</mark> Unsafe Server</td>
+    </tr>
+    <tr>
+      <td>gui.wurst.nochatreports.unsafe_server.message</td>
+      <td><span class='warning'><b>Warning:</b>&nbsp;ChatGPT thinks the reverse translation has a <abbr title='Supposed differences: &quot;un-block chat signatures&quot; (low impact), &quot;alt account&quot; (low impact), &quot;block the chat signature&quot; (low impact), &quot;replacement account&quot; (low impact)'>different meaning</abbr> than the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "Mojang" (painting.minecraft.earth.author) as "Mojang", which is consistent with this translation.</span></td>
+      <td>이 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>는 채팅 서명을 활성화해야 하므로 계정이 가짜 채팅 신고의 위험에 노출됩니다.<br><br>채팅 서명을 차단하고 다시 연결한 경우 이 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 채팅할 수 있습니다. 그렇다면 계정을 잃어도 상관없는 대체 계정으로 플레이하는 것을 고려하세요.<br><br>이 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>가 소유한 경우 server.properties에서 &#x27;<mark class='name'>enforce-secure-profile</mark>&#x27;을 false로 설정하여 수정할 수 있습니다. 전형적인 <mark class='name'><mark class='mcname' title='"Mojang" (painting.minecraft.earth.author)'>Mojang</mark></mark>의 스타일로, 이 설정은 이름이 의미하는 것과 반대로 작동합니다.</td>
+      <td>This server requires chat signatures to be enabled, putting your account at risk of fake chat reports.<br><br>You can chat on this server if you <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>block the chat signature</span> and reconnect. If so, consider playing with a <span class='error no-expand' title='ChatGPT thinks this part changes the meaning (low impact).'>replacement account</span> that you don&#x27;t mind losing.<br><br>If owned by this server, you can fix it by setting &#x27;<mark class='name'>enforce-secure-profile</mark>&#x27; to false in server.properties. In typical <mark class='name'>Mojang</mark> style, this setup does the opposite of what the name implies.</td>
+      <td>This <mark class='mcname' title='서버'>server</mark> requires chat signatures to be enabled, which puts your account at risk of fraudulent chat reports.<br><br>You can chat on this <mark class='mcname' title='서버'>server</mark> if you un-block chat signatures and then reconnect. If you do, consider playing on an alt account that you don&#x27;t mind losing.<br><br>If this is your <mark class='mcname' title='서버'>server</mark>, you can fix this by setting &#x27;<mark class='name'>enforce-secure-profile</mark>&#x27; to false in <mark class='mcname' title='서버'>server</mark>.properties. In typical <mark class='name'><mark class='mcname' title='Mojang'>Mojang</mark></mark> fashion, this setting does the opposite of what it sounds like.</td>
+    </tr>
+    <tr>
+      <td>toast.wurst.nochatreports.unsafe_server.title</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>채팅 메시지가 신고될 수 있습니다</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Chat messages may be flagged</span></td>
+      <td>Chat messages can be reported</td>
+    </tr>
+    <tr>
+      <td>toast.wurst.nochatreports.unsafe_server.message</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "server" (pack.source.server) as "서버", which is consistent with this translation.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "Mojang" (painting.minecraft.earth.author) as "Mojang", which is consistent with this translation.</span></td>
+      <td>이 <mark class='mcname' title='"server" (pack.source.server)'>서버</mark>에서 전송한 메시지는 <mark class='name'><mark class='mcname' title='"Mojang" (painting.minecraft.earth.author)'>Mojang</mark></mark>의 빅 브라더에게 신고될 수 있으며 계정이 전역 밴 처리될 수 있습니다</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Messages sent from this server may be reported to <mark class='name'>Mojang</mark>&#x27;s Big Brother and your account may be banned globally</span></td>
+      <td>Messages sent on this <mark class='mcname' title='서버'>server</mark> may be reported to Big Brother <mark class='name'><mark class='mcname' title='Mojang'>Mojang</mark></mark> and might get your account banned globally</td>
+    </tr>
+    <tr>
+      <td>gui.wurst.nochatreports.ncr_mod_server.title</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;Reversing the translation yields the original string.</span><br><span class='good'><b>Good sign:</b>&nbsp;Minecraft translates "Server" (pack.source.server) as "서버", which is consistent with this translation.</span></td>
+      <td>&quot;<mark class='name'>No Chat Reports</mark>&quot; <mark class='mcname' title='"Server" (pack.source.server)'>서버</mark></td>
+      <td><span class='good' title='Reversing the translation yields the original string.'>&quot;<mark class='name'>No Chat Reports</mark>&quot; Server</span></td>
+      <td>&quot;<mark class='name'>No Chat Reports</mark>&quot; <mark class='mcname' title='서버'>Server</mark></td>
+    </tr>
+    <tr>
+      <td>gui.wurst.nochatreports.ncr_mod_server.message</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>이 서버는 &quot;<mark class='name'>No Chat Reports</mark>&quot; 모드를 사용합니다.<br><br>채팅 서명을 차단하고 <mark class='name'>VanillaSpoof</mark>를 비활성화하면 이 서버에 참여할 수 있습니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>This server uses &quot;<mark class='name'>No Chat Reports</mark>&quot; mode.<br><br>You can join this server by blocking chat signatures and disabling <mark class='name'>VanillaSpoof</mark>.</span></td>
+      <td>This server uses the &quot;<mark class='name'>No Chat Reports</mark>&quot; mod.<br><br>You can join this server if you block chat signatures and disable <mark class='name'>VanillaSpoof</mark>.</td>
+    </tr>
+    <tr>
+      <td>button.wurst.nochatreports.signatures_status</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>서명:</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>signature:</span></td>
+      <td>Signatures:</td>
+    </tr>
+    <tr>
+      <td>description.wurst.nochatreports.message_is_reportable</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>이 메시지에는 유효한 서명이 있으므로 가짜 채팅 신고에 취약합니다.</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>Because these messages have valid signatures, they are vulnerable to fake chat reports.</span></td>
+      <td>This message has a valid signature and is thus vulnerable to fraudulent chat reports.</td>
+    </tr>
+    <tr>
+      <td>gui.wurst.generic.allcaps_blocked</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>차단됨</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>blocked</span></td>
+      <td>BLOCKED</td>
+    </tr>
+    <tr>
+      <td>gui.wurst.generic.allcaps_allowed</td>
+      <td><span class='good'><b>Good sign:</b>&nbsp;ChatGPT thinks the reverse translation has the same meaning as the original.</span></td>
+      <td>허용됨</td>
+      <td><span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>allowed</span></td>
+      <td>ALLOWED</td>
+    </tr>
+  </tbody>
+</table><div class='general-evaluation'><span class='info'><b>Info:</b>&nbsp;This analysis was generated on August 29, 2023 at 09:50 AM.</span><br><span class='info'><b>Info:</b>&nbsp;189 out of 190 strings (99.47%) have been translated.</span><br><span class='info'><b>Info:</b>&nbsp;Original has 2585 words, pending has 1958 words.</span><br><span class='info'><b>Info:</b>&nbsp;9 out of 189 translations (4.76%) are identical to Google Translate.</span><br><span class='info'><b>Info:</b>&nbsp;7 errors and 65 warnings were found in total.</span><br><span class='info'><b>Info:</b>&nbsp;139 out of 189 strings (73.54%) have no issues.</span></div><div class='progress-bar'></div><meta lang='ko'>
+<script>
+let table = document.getElementsByTagName('table')[0];
+let rows = table.rows;
+
+for (let i = 1; i < rows.length; i++) {
+	let row = rows[i];
+	for (let j = 0; j < row.cells.length; j++) {
+		let cell = row.cells[j];
+		if (cell.querySelector('.error:not(.no-expand)') !== null) {
+			cell.classList.add('error');
+			cell.classList.add('colored-cell');
+		} else if (cell.querySelector('.warning:not(.no-expand)') !== null) {
+			cell.classList.add('warning');
+			cell.classList.add('colored-cell');
+		} else if (cell.querySelector('.good:not(.no-expand)') !== null) {
+			cell.classList.add('good');
+			cell.classList.add('colored-cell');
+		}
+	}
+}
+
+let selectedRow = parseInt(localStorage.getItem('selectedRow')) || 1;
+rows[selectedRow].classList.add('selected');
+console.log(`Selected row: ${selectedRow}`);
+
+let progressBar = document.querySelector('.progress-bar');
+function updateProgressBar() {
+	let progress = (selectedRow / (rows.length - 1)) * 100;
+	progressBar.style.width = `${progress}%`;
+	if (selectedRow === rows.length - 1)
+		progressBar.classList.add('complete');
+	else
+		progressBar.classList.remove('complete');
+}
+updateProgressBar();
+
+function moveSelectionToRow(row) {
+	rows[selectedRow].classList.remove('selected');
+	selectedRow = row;
+	rows[selectedRow].classList.add('selected');
+	localStorage.setItem('selectedRow', selectedRow.toString());
+	updateProgressBar();
+	console.log(`Selected row: ${selectedRow}`);
+}
+document.addEventListener('keydown', (event) => {
+	if (event.key === 'ArrowDown')
+		moveSelectionToRow((selectedRow + 1) % rows.length);
+	else if (event.key === 'ArrowUp')
+		moveSelectionToRow((selectedRow - 1 + rows.length) % rows.length);
+});
+
+const lang = document.querySelector('meta[lang]').getAttribute('lang');
+
+// Add context menu entries for Google Translate and DeepL
+document.addEventListener('contextmenu', (event) => {
+	const selectedText = window.getSelection().toString();
+	if (selectedText !== '') {
+		const encodedText = encodeURIComponent(selectedText);
+		const googleurl = `https://translate.google.com/?op=translate&sl=${lang}&tl=en&text=${encodedText}`;
+		const deepLurl = `https://www.deepl.com/translator#${lang}/en/${encodedText}`;
+		const googleItem = document.createElement('a');
+		googleItem.classList.add('context-menu-item');
+		googleItem.href = googleurl;
+		googleItem.target = '_blank';
+		googleItem.innerText = 'View in Google Translate (G)';
+		googleItem.style.top = `${event.pageY-56}px`;
+		googleItem.style.left = `${event.pageX}px`;
+		document.body.appendChild(googleItem);
+		const deepLItem = document.createElement('a');
+		deepLItem.classList.add('context-menu-item');
+		deepLItem.href = deepLurl;
+		deepLItem.target = '_blank';
+		deepLItem.innerText = 'View in DeepL (D)';
+		deepLItem.style.top = `${event.pageY-30}px`;
+		deepLItem.style.left = `${event.pageX}px`;
+		document.body.appendChild(deepLItem);
+	}
+});
+
+// Remove the context menu entries when the menu is closed
+document.addEventListener('click', () => {
+	const menuItem = document.querySelectorAll('a.context-menu-item');
+	menuItem.forEach((item) => {
+		item.parentNode.removeChild(item);
+	});
+});
+
+// Add keyboard shortcuts for the context menu entries
+document.addEventListener('keydown', (event) => {
+	const selectedText = window.getSelection().toString();
+	if (selectedText !== '') {
+		const encodedText = encodeURIComponent(selectedText);
+		if (event.key === 'g') {
+			const googleurl = `https://translate.google.com/?op=translate&sl=${lang}&tl=en&text=${encodedText}`;
+			window.open(googleurl, '_blank');
+		} else if (event.key === 'd') {
+			const deepLurl = `https://www.deepl.com/translator#${lang}/en/${encodedText}`;
+			window.open(deepLurl, '_blank');
+		}
+	}
+});
+</script>
