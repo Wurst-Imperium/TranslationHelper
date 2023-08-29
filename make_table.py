@@ -36,6 +36,30 @@ def format_evaluation(key):
 def has_major_issues(classification):
 	return classification['language'] == 'Still in English' or classification['language'] == 'Other language' or classification['meaning'] == 'Different' or classification['grammar'] == 'Poor' or classification['context'] == 'Incorrect' or classification['formatting'] == 'Incorrect'
 
+def highlight_mcnames(original_value, pending_value):
+	# ignore mcnames that don't appear in pending
+	mcnames_in_pending = [name for name in mcnames.get(key, []) if name["translation"] in pending_value]
+	# sort by length of translation, so that longer names are replaced first
+	sorted_mcnames_in_pending = sorted(mcnames_in_pending, key=lambda name: len(name["translation"]), reverse=True)
+
+	# replace names with placeholders to avoid replacing parts of other names
+	for index, name in enumerate(sorted_mcnames_in_pending):
+		original_value = original_value.replace(name["original"], f"$a_{index}$")
+		if name["translation"].lower() != name["official_translation"].lower():
+			pending_value = pending_value.replace(name["translation"], f"$b_{index}$")
+		else:
+			pending_value = pending_value.replace(name["translation"], f"$c_{index}$")
+
+	# replace placeholders with highlighted names
+	for index, name in enumerate(sorted_mcnames_in_pending):
+		original_value = original_value.replace(f"$a_{index}$", f"<mark class='mcname' title='{name['official_translation']}'>{name['original']}</mark>")
+		if name["translation"].lower() != name["official_translation"].lower():
+			pending_value = pending_value.replace(f"$b_{index}$", f"<mark class='error no-expand' title='\"{name['original_singular']}\", which Minecraft translates as \"{name['official_translation']}\" ({name['translation_key']}).'>{name['translation']}</mark>")
+		else:
+			pending_value = pending_value.replace(f"$c_{index}$", f"<mark class='mcname' title='\"{name['original_singular']}\" ({name['translation_key']})'>{name['translation']}</mark>")
+
+	return original_value, pending_value
+
 # create table
 df = pd.DataFrame(columns=["Key", "Evaluation", "Pending", "Reverse-Translated", "Original"])
 
@@ -45,15 +69,8 @@ for key in original.keys():
 	original_value = format_translation(original, key)
 	pending_value = format_translation(pending, key)
 
-	# highlight minecraft names, starting with the longest name to avoid replacing substrings
-	for name in sorted(mcnames.get(key, []), key=lambda name: len(name["translation"]), reverse=True):
-		if name["translation"] not in pending_value:
-			continue
-		original_value = original_value.replace(name["original"], f"<mark class='mcname' title='{name['official_translation']}'>{name['original']}</mark>")
-		if name["translation"].lower() != name["official_translation"].lower():
-			pending_value = pending_value.replace(name["translation"], f"<mark class='error no-expand' title='\"{name['original_singular']}\", which Minecraft translates as \"{name['official_translation']}\" ({name['translation_key']}).'>{name['translation']}</mark>")
-		else:
-			pending_value = pending_value.replace(name["translation"], f"<mark class='mcname' title='\"{name['original_singular']}\" ({name['translation_key']})'>{name['translation']}</mark>")
+	# highlight minecraft names
+	original_value, pending_value = highlight_mcnames(original_value, pending_value)
 
 	# format reverse translation based on meaning analysis
 	reversed_value = format_translation(reversed, key)
