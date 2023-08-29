@@ -2,6 +2,8 @@
 
 A tool to help me review pending Wurst Client translations. Not sure if anyone else will find this useful. Maybe some translators will want to analyze their own translations before submitting them. But if you do, please note running all the OpenAI stuff is not free. Analyzing a full translation with the default settings costs about $0.16. You will get a more accurate estimate for each analysis when you run the script.
 
+![A screenshot of TranslationHelper analyzing an early draft of the Korean translations in Wurst-Imperium/Wurst7#872](https://github.com/Wurst-Imperium/TranslationHelper/assets/10100202/72b0a582-0bdd-4a90-b43e-e067c9c48210)
+
 ## Features
 
 - Google-translates the translation back to English, so I can review translations in languages I don't speak. (I used to do this manually for every string, so this is a huge time saver.)
@@ -15,6 +17,12 @@ A tool to help me review pending Wurst Client translations. Not sure if anyone e
 - Highlights names and color codes so it's easier to spot issues with them.
 
 - Includes a "bookmark" (red outline around a row), which can be moved up and down with the arrow keys and keeps its position when the page is reloaded. This helps me keep track of where I left off when I take a break from reviewing a translation.
+
+## Example Analysis
+
+<https://wurst-imperium.github.io/TranslationHelper/872_ko_kr>
+
+This example shows an early draft of the Korean translations in Wurst-Imperium/Wurst7#872.
 
 ## Installation
 
