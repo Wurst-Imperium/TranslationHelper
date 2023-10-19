@@ -51,6 +51,7 @@ add_info("_general_", f"This analysis was generated on {datetime.datetime.now().
 for key in original.keys():
 	if key not in pending:
 		add_info(key, "This string has not been translated.")
+		add_info(key, f"Google translation: {forward[key]}")
 	elif original[key] == pending[key]:
 		add_error(key, "This string is still in English.")
 
