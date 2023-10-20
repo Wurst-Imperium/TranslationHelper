@@ -31,3 +31,20 @@ with open('pending.json', encoding='utf-8') as f:
 with open('pending_lang.txt', encoding='utf-8') as f:
 	langcode = f.read().strip()
 	langcode_short = langcode.split('_')[0]
+
+# try to download old translation
+if not os.path.isfile(f'cache/lang/wurst/{langcode}.json'):
+	print(f"Downloading {langcode}.json from Wurst...")
+	langfile_downloader.download_langfile_wurst(langcode)
+
+# try to load old translation
+if os.path.isfile(f'cache/lang/wurst/{langcode}.json'):
+	with open(f'cache/lang/wurst/{langcode}.json', encoding='utf-8') as f:
+		old_translation = json.load(f)
+else:
+	old_translation = {}
+
+# remove pending strings that are identical to the old translation
+for key in list(pending.keys()):
+	if key in old_translation and pending[key] == old_translation[key]:
+		pending.pop(key)

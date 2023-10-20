@@ -6,7 +6,7 @@ import html
 import json
 import os
 import re
-from langfiles import original, pending
+from langfiles import original, pending, old_translation
 from google_translate import forward, reversed
 from wiki_data import wiki_data
 from gpt_analyze_meaning import meaning_analysis
@@ -50,8 +50,11 @@ add_info("_general_", f"This analysis was generated on {datetime.datetime.now().
 # check for untranslated strings
 for key in original.keys():
 	if key not in pending:
-		add_info(key, "This string has not been translated.")
-		add_info(key, f"Google translation: {forward[key]}")
+		if key in old_translation:
+			add_info(key, "Skipped this string because it's identical to the old translation.")
+		else:
+			add_info(key, "This string has not been translated.")
+			add_info(key, f"Google translation: {forward[key]}")
 	elif original[key] == pending[key]:
 		add_error(key, "This string is still in English.")
 
