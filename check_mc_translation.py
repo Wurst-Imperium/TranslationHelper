@@ -11,8 +11,9 @@ if __name__ == "__main__":
 		exit()
 	
 	english = " ".join(sys.argv[1:])
-	key = i18n.reverse_lookup(english)
-	print(f"Key: {key}")
+	keys = i18n.reverse_lookup_multi(english)
 
-	translated = i18n.translate(key, langcode)
-	print(f"Value: {translated}")
+	for key in keys:
+		print(f"Key: {key}")
+		translated = i18n.translate(key, langcode)
+		print(f"Value: {translated}")
