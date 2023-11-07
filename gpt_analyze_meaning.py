@@ -5,7 +5,6 @@ import json
 import os
 import time
 import re
-import traceback
 import openai
 import openai_cost
 import concurrent.futures
@@ -15,6 +14,9 @@ from google_translate import reversed
 
 model = "gpt-3.5-turbo-0613"
 # model = "gpt-4-0613"
+
+MAX_RETRIES = 2
+MAX_WORKERS = 10
 
 analyze_schema = {
 	"name": "analyze",
@@ -32,8 +34,8 @@ analyze_schema = {
 							"type": "string",
 							"description": "Briefly describe the difference."
 						},
-                        "impact": {
-                            "type": "string",
+						"impact": {
+							"type": "string",
 							"description": "How much does this difference change the meaning of the text?",
 							"enum": ["None", "Low", "Medium", "High"]
 						}
@@ -51,20 +53,15 @@ analyze_schema = {
 	}
 }
 
-def request_completion(args):
-	key, original_value, reversed_value = args
-	user_message = f"Original:\n```\n{original_value}\n```\n\nVariation:\n```\n{reversed_value}\n```"
-	messages = [{"role": "user", "content": user_message}]
-	response = openai.ChatCompletion.create(
+def request_completion(messages):
+	return openai.ChatCompletion.create(
 		model=model,
 		temperature=0,
 		messages=messages,
 		functions=[analyze_schema],
 		function_call={"name": "analyze"},
-		timeout=120
+		timeout=120 # this doesn't seem to work
 	)
-	# print(messages, response)
-	return key, response
 
 def analyze_meaning():
 	global meaning_analysis
@@ -73,32 +70,60 @@ def analyze_meaning():
 	if not os.path.exists('cache/chatgpt'):
 		os.makedirs('cache/chatgpt')
 
-	with concurrent.futures.ThreadPoolExecutor() as executor:
-		futures = []
-		print("Requesting completions...")
-		for key in tqdm(reversed.keys()):
-			# surround all § codes with square brackets to improve tokenization
-			original_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", original[key])
-			reversed_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", reversed[key])
-			# skip identical strings, which obviously have the same meaning
-			if original_value == reversed_value:
-				continue
-			args = (key, original_value, reversed_value)
-			futures.append(executor.submit(request_completion, args))
-			time.sleep(0.1)
+	# prepare the chats
+	chats = {}
+	print("Preparing chats...")
+	for key in reversed.keys():
+		# surround all § codes with square brackets to improve tokenization
+		original_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", original[key])
+		reversed_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", reversed[key])
+		# skip identical strings, which obviously have the same meaning
+		if original_value == reversed_value:
+			continue
+		user_message = f"Original:\n```\n{original_value}\n```\n\nVariation:\n```\n{reversed_value}\n```"
+		messages = [{"role": "user", "content": user_message}]
+		chats[key] = messages
 
-		print("Waiting for responses...")
-		for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
-			key, response = future.result()
-			try:
-				usages.append(response["usage"])
-				args = json.loads(response["choices"][0]["message"]["function_call"]["arguments"])
-				meaning_analysis[key] = args
-				with open("cache/chatgpt/meaning_analysis.json", "w", encoding='utf-8') as f:
-					json.dump(meaning_analysis, f, indent=2)
-			except Exception as e:
-				print(f"Got exception for key {key}: {e}\nTraceback: {traceback.format_exc()}\nResponse: {response}")
+	# initialize the progress bar and dict to keep track of retries
+	pbar = tqdm(total=len(chats), desc="Requests", unit="request")
+	retries = {key: 0 for key in chats.keys()}
 
+	tqdm.write("Requesting completions...")
+	with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+		future_to_key = {executor.submit(request_completion, data): key for key, data in chats.items()}
+
+		while future_to_key:
+			# wait for the next future to complete
+			done, _ = concurrent.futures.wait(
+				future_to_key.keys(),
+				return_when=concurrent.futures.FIRST_COMPLETED
+			)
+
+			for future in done:
+				key = future_to_key.pop(future)
+				try:
+					result = future.result()
+					pbar.update(1)
+					if "usage" in result:
+						usages.append(result["usage"])
+					if "choices" in result:
+						meaning_analysis[key] = json.loads(result["choices"][0]["message"]["function_call"]["arguments"])
+						with open("cache/chatgpt/meaning_analysis.json", "w", encoding='utf-8') as f:
+							json.dump(meaning_analysis, f, indent=2)
+				except Exception as e:
+					retries[key] += 1
+					if retries[key] < MAX_RETRIES:
+						# write the error message to the console
+						tqdm.write(f"Retrying request for {key} ({retries[key]}/{MAX_RETRIES}) after error: {e}")
+						time.sleep(1)
+						# resubmit the task to the executor
+						new_future = executor.submit(request_completion, chats[key])
+						future_to_key[new_future] = key
+					else:
+						# write the error message to the console
+						tqdm.write(f"Request for {key} failed after {MAX_RETRIES} retries: {e}")
+
+		pbar.close()
 	openai_cost.print_usage(usages, model)
 
 cost_estimate = openai_cost.estimate(model, 162, 104, len(reversed))
