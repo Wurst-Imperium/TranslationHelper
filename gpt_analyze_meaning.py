@@ -5,12 +5,12 @@ import json
 import os
 import time
 import re
-import openai
 import openai_cost
 import concurrent.futures
 from tqdm import tqdm
 from langfiles import original
 from google_translate import reversed
+import requests
 
 model = "gpt-3.5-turbo-0613"
 # model = "gpt-4-0613"
@@ -54,14 +54,20 @@ analyze_schema = {
 }
 
 def request_completion(messages):
-	return openai.ChatCompletion.create(
-		model=model,
-		temperature=0,
-		messages=messages,
-		functions=[analyze_schema],
-		function_call={"name": "analyze"},
-		timeout=120 # this doesn't seem to work
-	)
+	headers = {
+		"Content-Type": "application/json",
+		"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"
+	}
+	payload = {
+		"model": model,
+		"temperature": 0,
+		"messages": messages,
+		"functions": [analyze_schema],
+		"function_call": {"name": "analyze"},
+	}
+	response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=120)
+	response.raise_for_status()
+	return response.json()
 
 def analyze_meaning():
 	global meaning_analysis
