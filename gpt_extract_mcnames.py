@@ -16,7 +16,7 @@ import i18n
 model = "gpt-3.5-turbo-0613"
 # model = "gpt-4-0613"
 seed = 1337
-MAX_RETRIES = 2
+MAX_RETRIES = 3
 MAX_WORKERS = 20
 TIMEOUT = 90
 
@@ -122,7 +122,7 @@ def analyze_mcnames():
 					if retries[key] < MAX_RETRIES:
 						# write the error message to the console
 						tqdm.write(f"Retrying request for {key} ({retries[key]}/{MAX_RETRIES}) after error: {e}")
-						time.sleep(1)
+						time.sleep(retries[key]**3)
 						# resubmit the task to the executor
 						new_future = executor.submit(request_completion, chats[key])
 						future_to_key[new_future] = key
