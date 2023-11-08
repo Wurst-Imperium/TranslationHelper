@@ -14,9 +14,10 @@ import requests
 
 model = "gpt-3.5-turbo-0613"
 # model = "gpt-4-0613"
-
+seed = 1337
 MAX_RETRIES = 2
-MAX_WORKERS = 10
+MAX_WORKERS = 20
+TIMEOUT = 90
 
 analyze_schema = {
 	"name": "analyze",
@@ -60,12 +61,12 @@ def request_completion(messages):
 	}
 	payload = {
 		"model": model,
-		"temperature": 0,
+		"seed": seed,
 		"messages": messages,
 		"functions": [analyze_schema],
 		"function_call": {"name": "analyze"},
 	}
-	response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=120)
+	response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=TIMEOUT)
 	response.raise_for_status()
 	return response.json()
 
