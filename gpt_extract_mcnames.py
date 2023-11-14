@@ -157,13 +157,19 @@ cleaned_mcnames = {}
 for key in mcnames.keys():
 	for name in mcnames[key]:
 		# remove mcnames that don't contain "original" or "translation"
-		if "original" not in name or "translation" not in name:
+		if "original" not in name or name["original"] is None or name["original"] == "":
+			continue
+		if "translation" not in name or name["translation"] is None or name["translation"] == "":
 			continue
 		# remove mcnames that aren't actually present in original
-		elif name["original"].lower() not in original[key].lower():
+		if name["original"].lower() not in original[key].lower():
 			continue
+		# get original_singular, or fallback to original
+		original_singular = name.get("original_singular", None)
+		if original_singular is None or original_singular == "":
+			original_singular = name["original"]
 		# remove mcnames that don't actually exist in Minecraft
-		trkey = i18n.reverse_lookup(name.get("original_singular", name["original"]), fallback=False)
+		trkey = i18n.reverse_lookup(original_singular, fallback=False)
 		if trkey is False:
 			continue
 		# remove mcnames with no official translation
