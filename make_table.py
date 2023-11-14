@@ -11,9 +11,14 @@ from gpt_analyze_meaning import meaning_analysis
 from gpt_extract_mcnames import mcnames
 import namefinder
 
-def format_translation(translations, key):
-	translation = translations.get(key, "(no data)")
-	translation = html.escape(translation).replace('\n', '<br>')
+def get_preformatted_translation(set, key):
+	translation = set.get(key, "(no data)")
+	translation = html.escape(translation)
+	return translation
+
+def format_translation(translation):
+	# replace newlines with html line breaks
+	translation = translation.replace('\n', '<br>')
 	# highlight formatting codes
 	translation = re.sub(r'§[0-9a-fk-or]|%[sdf]', lambda m: f"<mark class='code'>{m.group(0)}</mark>", translation)
 	# highlight names
@@ -78,14 +83,14 @@ df = pd.DataFrame(columns=["Key", "Evaluation", "Pending", "Reverse-Translated",
 # add rows to table
 for key in original.keys():
 	evaluation_value = format_evaluation(key)
-	original_value = format_translation(original, key)
-	pending_value = format_translation(pending, key)
+	original_value = get_preformatted_translation(original, key)
+	pending_value = get_preformatted_translation(pending, key)
 
 	# highlight minecraft names
 	original_value, pending_value = highlight_mcnames(key, original_value, pending_value)
 
 	# format reverse translation based on meaning analysis
-	reversed_value = format_translation(reversed, key)
+	reversed_value = get_preformatted_translation(reversed, key)
 	if original.get(key, None) == reversed.get(key, None):
 		reversed_value = f"<span class='good' title='Reversing the translation yields the original string.'>{reversed_value}</span>"
 	elif pending.get(key, None) == forward.get(key, None):
@@ -106,6 +111,11 @@ for key in original.keys():
 		# replace each part in reverse order
 		for start, end, replacement in replacements:
 			reversed_value = reversed_value[:start] + replacement + reversed_value[end:]
+
+	# apply formatting
+	original_value = format_translation(original_value)
+	pending_value = format_translation(pending_value)
+	reversed_value = format_translation(reversed_value)
 
 	row = {"Key": html.escape(key), "Evaluation": evaluation_value, "Pending": pending_value, "Reverse-Translated": reversed_value, "Original": original_value}
 	df = pd.concat([df, pd.DataFrame(row, index=[0])])
