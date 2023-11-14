@@ -21,8 +21,6 @@ def format_translation(translation):
 	translation = translation.replace('\n', '<br>')
 	# highlight formatting codes
 	translation = re.sub(r'§[0-9a-fk-or]|%[sdf]', lambda m: f"<mark class='code'>{m.group(0)}</mark>", translation)
-	# highlight names
-	translation = namefinder.mark_names(translation)
 	return translation
 
 def format_evaluation(key):
@@ -61,6 +59,12 @@ def highlight_mcnames(key, original_value, pending_value):
 			else:
 				pending_replacement = f"<mark class='mcname' title='\"{name['original_singular']}\" ({name['translation_key']})'>{name['translation']}</mark>"
 			pending_replacements.append((pending_start, pending_end, pending_replacement))
+
+	# add replacements for custom names
+	for match in namefinder.get_name_matches(original_value):
+		original_replacements.append((match.start(), match.end(), f"<mark class='name'>{match.group()}</mark>"))
+	for match in namefinder.get_name_matches(pending_value):
+		pending_replacements.append((match.start(), match.end(), f"<mark class='name'>{match.group()}</mark>"))
 
 	original_value = apply_replacements(original_value, original_replacements)
 	pending_value = apply_replacements(pending_value, pending_replacements)
