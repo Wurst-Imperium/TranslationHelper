@@ -77,6 +77,41 @@ def highlight_mcnames(key, original_value, pending_value):
 
 	return original_value, pending_value
 
+def replace_differences(string, differences):
+	# ignore diffs with no impact
+	differences = [diff for diff in differences if diff['impact'] != 'None']
+
+	# find differences and prepare replacements
+	replacements = []
+	for diff in differences:
+		start = string.find(diff['difference'])
+		if start != -1:  # only add if the difference is found
+			end = start + len(diff['difference'])
+			replacement = f"<span class='error no-expand' title='ChatGPT thinks this part changes the meaning ({diff['impact'].lower()} impact).'>{diff['difference']}</span>"
+			replacements.append((start, end, replacement))
+
+	# remove replacements that are contained in other replacements
+	repl_copy = replacements.copy()
+	for i in range(len(replacements) - 1, -1, -1):
+		start, end, _ = replacements[i]
+		for i2 in range(len(repl_copy) - 1, -1, -1):
+			if i == i2:
+				continue
+			other_start, other_end, _ = repl_copy[i2]
+			if start >= other_start and end <= other_end:
+				del replacements[i]
+				break
+	del repl_copy
+
+	# sort by start position in reverse order
+	replacements.sort(key=lambda x: x[0], reverse=True)
+
+	# replace each part in reverse order
+	for start, end, replacement in replacements:
+		string = string[:start] + replacement + string[end:]
+	
+	return string
+
 # create table
 df = pd.DataFrame(columns=["Key", "Evaluation", "Pending", "Reverse-Translated", "Original"])
 
@@ -98,19 +133,7 @@ for key in original.keys():
 	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Same':
 		reversed_value = f"<span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>{reversed_value}</span>"
 	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Different':
-		differences = [diff for diff in meaning_analysis[key]['differences'] if diff['impact'] != 'None']
-		replacements = []
-		for diff in differences:
-			start = reversed_value.find(diff['difference'])
-			if start != -1:  # only add if the difference is found
-				end = start + len(diff['difference'])
-				replacement = f"<span class='error no-expand' title='ChatGPT thinks this part changes the meaning ({diff['impact'].lower()} impact).'>{diff['difference']}</span>"
-				replacements.append((start, end, replacement))
-		# sort by start position in reverse order
-		replacements.sort(key=lambda x: x[0], reverse=True)
-		# replace each part in reverse order
-		for start, end, replacement in replacements:
-			reversed_value = reversed_value[:start] + replacement + reversed_value[end:]
+		reversed_value = replace_differences(reversed_value, meaning_analysis[key]['differences'])
 
 	# apply formatting
 	original_value = format_translation(original_value)
