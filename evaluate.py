@@ -82,7 +82,7 @@ add_info("_general_", f"Original has {original_word_count} words, pending has {p
 # check Google Translate results
 google_identical = 0
 for key in pending.keys():
-	if pending[key] == forward[key]:
+	if pending[key] == forward.get(key, None):
 		google_identical += 1
 		add_info(key, "This string is identical to Google Translate.")
 	if original.get(key, None) == reversed[key] and pending[key] != original[key]:
