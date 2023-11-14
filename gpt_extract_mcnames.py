@@ -79,7 +79,7 @@ def analyze_mcnames():
 	chats = {}
 	print("Preparing chats...")
 	for key in pending.keys():
-		if key in mcnames:
+		if key in mcnames or key not in original:
 			continue
 		# surround all § codes with square brackets to improve tokenization
 		original_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", original[key])

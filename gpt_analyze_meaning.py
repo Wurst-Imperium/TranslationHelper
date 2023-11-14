@@ -81,6 +81,8 @@ def analyze_meaning():
 	chats = {}
 	print("Preparing chats...")
 	for key in reversed.keys():
+		if key not in original:
+			continue
 		# surround all § codes with square brackets to improve tokenization
 		original_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", original[key])
 		reversed_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", reversed[key])
