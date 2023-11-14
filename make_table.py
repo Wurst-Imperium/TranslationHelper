@@ -65,23 +65,13 @@ def highlight_mcnames(key, original_value, pending_value):
 				pending_replacement = f"<mark class='mcname' title='\"{name['original_singular']}\" ({name['translation_key']})'>{name['translation']}</mark>"
 			pending_replacements.append((pending_start, pending_end, pending_replacement))
 
-	# sort by start position in reverse order
-	original_replacements.sort(key=lambda x: x[0], reverse=True)
-	pending_replacements.sort(key=lambda x: x[0], reverse=True)
-
-	# replace each part in reverse order
-	for start, end, replacement in original_replacements:
-		original_value = original_value[:start] + replacement + original_value[end:]
-	for start, end, replacement in pending_replacements:
-		pending_value = pending_value[:start] + replacement + pending_value[end:]
+	original_value = apply_replacements(original_value, original_replacements)
+	pending_value = apply_replacements(pending_value, pending_replacements)
 
 	return original_value, pending_value
 
-def replace_differences(string, differences):
-	# ignore diffs with no impact
+def diffs_to_replacements(string, differences):
 	differences = [diff for diff in differences if diff['impact'] != 'None']
-
-	# find differences and prepare replacements
 	replacements = []
 	for diff in differences:
 		start = string.find(diff['difference'])
@@ -89,7 +79,9 @@ def replace_differences(string, differences):
 			end = start + len(diff['difference'])
 			replacement = f"<span class='error no-expand' title='ChatGPT thinks this part changes the meaning ({diff['impact'].lower()} impact).'>{diff['difference']}</span>"
 			replacements.append((start, end, replacement))
+	return replacements
 
+def apply_replacements(string, replacements):
 	# remove replacements that are contained in other replacements
 	repl_copy = replacements.copy()
 	for i in range(len(replacements) - 1, -1, -1):
@@ -102,14 +94,11 @@ def replace_differences(string, differences):
 				del replacements[i]
 				break
 	del repl_copy
-
 	# sort by start position in reverse order
 	replacements.sort(key=lambda x: x[0], reverse=True)
-
 	# replace each part in reverse order
 	for start, end, replacement in replacements:
 		string = string[:start] + replacement + string[end:]
-	
 	return string
 
 # create table
@@ -126,14 +115,16 @@ for key in original.keys():
 
 	# format reverse translation based on meaning analysis
 	reversed_value = get_preformatted_translation(reversed, key)
+	reversed_replacements = []
 	if original.get(key, None) == reversed.get(key, None):
-		reversed_value = f"<span class='good' title='Reversing the translation yields the original string.'>{reversed_value}</span>"
+		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Reversing the translation yields the original string.'>{reversed_value}</span>")]
 	elif pending.get(key, None) == forward.get(key, None):
-		reversed_value = f"<span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>{reversed_value}</span>"
+		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>{reversed_value}</span>")]
 	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Same':
-		reversed_value = f"<span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>{reversed_value}</span>"
+		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>{reversed_value}</span>")]
 	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Different':
-		reversed_value = replace_differences(reversed_value, meaning_analysis[key]['differences'])
+		reversed_replacements = diffs_to_replacements(reversed_value, meaning_analysis[key]['differences'])
+	reversed_value = apply_replacements(reversed_value, reversed_replacements)
 
 	# apply formatting
 	original_value = format_translation(original_value)
