@@ -38,9 +38,6 @@ def format_evaluation(key):
 		html += f"<span class='info'><b>Info:</b>&nbsp;{info}</span><br>"
 	return html[:-4] if html.endswith('<br>') else html
 
-def has_major_issues(classification):
-	return classification['language'] == 'Still in English' or classification['language'] == 'Other language' or classification['meaning'] == 'Different' or classification['grammar'] == 'Poor' or classification['context'] == 'Incorrect' or classification['formatting'] == 'Incorrect'
-
 def highlight_mcnames(key, original_value, pending_value):
 	# ignore mcnames that don't appear in pending
 	mcnames_in_pending = [name for name in mcnames.get(key, []) if name["translation"] in pending_value]
