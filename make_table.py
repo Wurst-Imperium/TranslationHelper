@@ -36,27 +36,39 @@ def format_evaluation(key):
 def has_major_issues(classification):
 	return classification['language'] == 'Still in English' or classification['language'] == 'Other language' or classification['meaning'] == 'Different' or classification['grammar'] == 'Poor' or classification['context'] == 'Incorrect' or classification['formatting'] == 'Incorrect'
 
-def highlight_mcnames(original_value, pending_value):
+def highlight_mcnames(key, original_value, pending_value):
 	# ignore mcnames that don't appear in pending
 	mcnames_in_pending = [name for name in mcnames.get(key, []) if name["translation"] in pending_value]
 	# sort by length of translation, so that longer names are replaced first
 	sorted_mcnames_in_pending = sorted(mcnames_in_pending, key=lambda name: len(name["translation"]), reverse=True)
 
-	# replace names with placeholders to avoid replacing parts of other names
-	for index, name in enumerate(sorted_mcnames_in_pending):
-		original_value = original_value.replace(name["original"], f"$a_{index}$")
-		if name["translation"].lower() != name["official_translation"].lower():
-			pending_value = pending_value.replace(name["translation"], f"$b_{index}$")
-		else:
-			pending_value = pending_value.replace(name["translation"], f"$c_{index}$")
+	# find positions of names in original and pending
+	original_replacements = []
+	pending_replacements = []
+	for name in sorted_mcnames_in_pending:
+		original_start = original_value.find(name["original"])
+		if original_start != -1:
+			original_end = original_start + len(name["original"])
+			original_replacement = f"<mark class='mcname' title='{name['official_translation']}'>{name['original']}</mark>"
+			original_replacements.append((original_start, original_end, original_replacement))
+		pending_start = pending_value.find(name["translation"])
+		if pending_start != -1:
+			pending_end = pending_start + len(name["translation"])
+			if name["translation"].lower() != name["official_translation"].lower():
+				pending_replacement = f"<mark class='error no-expand' title='\"{name['original_singular']}\", which Minecraft translates as \"{name['official_translation']}\" ({name['translation_key']}).'>{name['translation']}</mark>"
+			else:
+				pending_replacement = f"<mark class='mcname' title='\"{name['original_singular']}\" ({name['translation_key']})'>{name['translation']}</mark>"
+			pending_replacements.append((pending_start, pending_end, pending_replacement))
 
-	# replace placeholders with highlighted names
-	for index, name in enumerate(sorted_mcnames_in_pending):
-		original_value = original_value.replace(f"$a_{index}$", f"<mark class='mcname' title='{name['official_translation']}'>{name['original']}</mark>")
-		if name["translation"].lower() != name["official_translation"].lower():
-			pending_value = pending_value.replace(f"$b_{index}$", f"<mark class='error no-expand' title='\"{name['original_singular']}\", which Minecraft translates as \"{name['official_translation']}\" ({name['translation_key']}).'>{name['translation']}</mark>")
-		else:
-			pending_value = pending_value.replace(f"$c_{index}$", f"<mark class='mcname' title='\"{name['original_singular']}\" ({name['translation_key']})'>{name['translation']}</mark>")
+	# sort by start position in reverse order
+	original_replacements.sort(key=lambda x: x[0], reverse=True)
+	pending_replacements.sort(key=lambda x: x[0], reverse=True)
+
+	# replace each part in reverse order
+	for start, end, replacement in original_replacements:
+		original_value = original_value[:start] + replacement + original_value[end:]
+	for start, end, replacement in pending_replacements:
+		pending_value = pending_value[:start] + replacement + pending_value[end:]
 
 	return original_value, pending_value
 
@@ -70,7 +82,7 @@ for key in original.keys():
 	pending_value = format_translation(pending, key)
 
 	# highlight minecraft names
-	original_value, pending_value = highlight_mcnames(original_value, pending_value)
+	original_value, pending_value = highlight_mcnames(key, original_value, pending_value)
 
 	# format reverse translation based on meaning analysis
 	reversed_value = format_translation(reversed, key)
@@ -82,8 +94,18 @@ for key in original.keys():
 		reversed_value = f"<span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>{reversed_value}</span>"
 	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Different':
 		differences = [diff for diff in meaning_analysis[key]['differences'] if diff['impact'] != 'None']
+		replacements = []
 		for diff in differences:
-			reversed_value = reversed_value.replace(diff['difference'], f"<span class='error no-expand' title='ChatGPT thinks this part changes the meaning ({diff['impact'].lower()} impact).'>{diff['difference']}</span>")
+			start = reversed_value.find(diff['difference'])
+			if start != -1:  # only add if the difference is found
+				end = start + len(diff['difference'])
+				replacement = f"<span class='error no-expand' title='ChatGPT thinks this part changes the meaning ({diff['impact'].lower()} impact).'>{diff['difference']}</span>"
+				replacements.append((start, end, replacement))
+		# sort by start position in reverse order
+		replacements.sort(key=lambda x: x[0], reverse=True)
+		# replace each part in reverse order
+		for start, end, replacement in replacements:
+			reversed_value = reversed_value[:start] + replacement + reversed_value[end:]
 
 	row = {"Key": html.escape(key), "Evaluation": evaluation_value, "Pending": pending_value, "Reverse-Translated": reversed_value, "Original": original_value}
 	df = pd.concat([df, pd.DataFrame(row, index=[0])])
