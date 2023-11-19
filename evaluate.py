@@ -7,7 +7,7 @@ import json
 import os
 import re
 from langfiles import original, pending, old_translation
-from google_translate import forward, reversed
+from google_translate import forward, reversed, forward_reverse
 from wiki_data import wiki_data
 from gpt_analyze_meaning import meaning_analysis
 from gpt_extract_mcnames import mcnames
@@ -85,8 +85,11 @@ for key in pending.keys():
 	if pending[key] == forward.get(key, None):
 		google_identical += 1
 		add_info(key, "This string is identical to Google Translate.")
-	if original.get(key, None) == reversed[key] and pending[key] != original[key]:
-		add_good_sign(key, "Reversing the translation yields the original string.")
+	if pending[key] != original[key]:
+		if original.get(key, None) == reversed[key]:
+			add_good_sign(key, "Reversing the translation yields the original string.")
+		elif forward_reverse.get(key, None) == reversed[key]:
+			add_good_sign(key, "Reversing the translation yields the original string (plus Google Translate artifacts).")
 if google_identical > len(pending) * 0.5:
 	add_warning("_general_", f"{google_identical} out of {len(pending)} strings ({google_identical / len(pending) * 100:.2f}%) are identical to Google Translate.")
 else:

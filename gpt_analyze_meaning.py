@@ -9,7 +9,7 @@ import openai_cost
 import concurrent.futures
 from tqdm import tqdm
 from langfiles import original
-from google_translate import reversed
+from google_translate import reversed, forward_reverse
 import requests
 
 model = "gpt-3.5-turbo-0613"
@@ -70,28 +70,12 @@ def request_completion(messages):
 	response.raise_for_status()
 	return response.json()
 
-def analyze_meaning():
+def analyze_meaning(chats):
 	global meaning_analysis
 	meaning_analysis = {}
 	usages = []
 	if not os.path.exists('cache/chatgpt'):
 		os.makedirs('cache/chatgpt')
-
-	# prepare the chats
-	chats = {}
-	print("Preparing chats...")
-	for key in reversed.keys():
-		if key not in original:
-			continue
-		# surround all § codes with square brackets to improve tokenization
-		original_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", original[key])
-		reversed_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", reversed[key])
-		# skip identical strings, which obviously have the same meaning
-		if original_value == reversed_value:
-			continue
-		user_message = f"Original:\n```\n{original_value}\n```\n\nVariation:\n```\n{reversed_value}\n```"
-		messages = [{"role": "user", "content": user_message}]
-		chats[key] = messages
 
 	# initialize the progress bar and dict to keep track of retries
 	pbar = tqdm(total=len(chats), desc="Requests", unit="request")
@@ -135,12 +119,29 @@ def analyze_meaning():
 		pbar.close()
 	openai_cost.print_usage(usages, model)
 
-cost_estimate = openai_cost.estimate(model, 162, 104, len(reversed))
+# prepare the chats
+chats = {}
+print("Preparing chats...")
+for key in reversed.keys():
+	if key not in original:
+		continue
+	# surround all § codes with square brackets to improve tokenization
+	original_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", original[key])
+	reversed_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", reversed[key])
+	fwd_rev_value = re.sub(r'§.', lambda m: f"[{m.group(0)}]", forward_reverse[key])
+	# skip identical strings, which obviously have the same meaning
+	if original_value == reversed_value or fwd_rev_value == reversed_value:
+		continue
+	user_message = f"Original:\n```\n{original_value}\n```\n\nVariation:\n```\n{reversed_value}\n```"
+	messages = [{"role": "user", "content": user_message}]
+	chats[key] = messages
+
+cost_estimate = openai_cost.estimate(model, 162, 104, len(chats))
 if __name__ == "__main__":
 	# ask user to confirm
-	confirm = input(f"Analyzing {len(reversed)} strings with {model} will cost approximately ${cost_estimate}. Continue? (Y/n) ")
+	confirm = input(f"Analyzing {len(chats)} strings with {model} will cost approximately ${cost_estimate}. Continue? (Y/n) ")
 	if confirm.lower() != "n":
-		analyze_meaning()
+		analyze_meaning(chats)
 else:
 	# check if meaning_analysis.json exists
 	if os.path.isfile('cache/chatgpt/meaning_analysis.json'):
@@ -148,6 +149,6 @@ else:
 			meaning_analysis = json.load(f)
 	else:
 		# ask user to confirm
-		confirm = input(f"No meaning analysis found. Analyzing {len(reversed)} strings with {model} will cost approximately ${cost_estimate}. Continue? (Y/n) ")
+		confirm = input(f"No meaning analysis found. Analyzing {len(chats)} strings with {model} will cost approximately ${cost_estimate}. Continue? (Y/n) ")
 		if confirm.lower() != "n":
-			analyze_meaning()
+			analyze_meaning(chats)

@@ -5,7 +5,7 @@ import re
 import pandas as pd
 import html
 from langfiles import original, pending, langcode_short
-from google_translate import forward, reversed
+from google_translate import forward, reversed, forward_reverse
 from evaluate import evals
 from gpt_analyze_meaning import meaning_analysis
 from gpt_extract_mcnames import mcnames
@@ -119,6 +119,8 @@ for key in original.keys():
 	reversed_replacements = []
 	if original.get(key, None) == reversed.get(key, None):
 		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Reversing the translation yields the original string.'>{reversed_value}</span>")]
+	elif forward_reverse.get(key, None) == reversed.get(key, None):
+		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Reversing the translation yields the original string (plus Google Translate artifacts).'>{reversed_value}</span>")]
 	elif pending.get(key, None) == forward.get(key, None):
 		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>{reversed_value}</span>")]
 	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Same':
