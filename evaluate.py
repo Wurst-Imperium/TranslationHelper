@@ -99,7 +99,7 @@ for key in pending.keys():
 	if meaning_analysis[key]['meaning'] == 'Same':
 		add_good_sign(key, "ChatGPT thinks the reverse translation has the same meaning as the original.")
 	elif meaning_analysis[key]['meaning'] == 'Different':
-		differences = [diff for diff in meaning_analysis[key]['differences'] if diff['impact'] != 'None']
+		differences = [diff for diff in meaning_analysis[key]['differences'] if 'impact' in diff and diff['impact'] != 'None']
 		if len(differences) == 0:
 			diff_string = "Supposed differences: "
 			diff_string += ", ".join(f'"{diff["difference"]}"' for diff in meaning_analysis[key]['differences'])

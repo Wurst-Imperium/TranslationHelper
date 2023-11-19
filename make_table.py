@@ -72,7 +72,7 @@ def highlight_mcnames(key, original_value, pending_value):
 	return original_value, pending_value
 
 def diffs_to_replacements(string, differences):
-	differences = [diff for diff in differences if diff['impact'] != 'None']
+	differences = [diff for diff in differences if 'impact' in diff and diff['impact'] != 'None']
 	replacements = []
 	for diff in differences:
 		start = string.find(diff['difference'])
