@@ -7,8 +7,8 @@ import html
 from langfiles import original, pending, langcode_short
 from google_translate import reversed, gt_identical, gt_reversible, gt_reversible_artifacts
 from evaluate import evals
-from gpt_analyze_meaning import meaning_analysis
 from gpt_extract_mcnames import mcnames
+from gpt_embeddings import low_distance_any, get_low_distance_message
 import namefinder
 
 def get_preformatted_translation(set, key):
@@ -71,17 +71,6 @@ def highlight_mcnames(key, original_value, pending_value):
 
 	return original_value, pending_value
 
-def diffs_to_replacements(string, differences):
-	differences = [diff for diff in differences if 'impact' in diff and diff['impact'] != 'None']
-	replacements = []
-	for diff in differences:
-		start = string.find(diff['difference'])
-		if start != -1:  # only add if the difference is found
-			end = start + len(diff['difference'])
-			replacement = f"<span class='error no-expand' title='ChatGPT thinks this part changes the meaning ({diff['impact'].lower()} impact).'>{diff['difference']}</span>"
-			replacements.append((start, end, replacement))
-	return replacements
-
 def apply_replacements(string, replacements):
 	# remove replacements that are contained in other replacements
 	repl_copy = replacements.copy()
@@ -114,7 +103,7 @@ for key in original.keys():
 	# highlight minecraft names
 	original_value, pending_value = highlight_mcnames(key, original_value, pending_value)
 
-	# format reverse translation based on meaning analysis
+	# format reverse translation
 	reversed_value = get_preformatted_translation(reversed, key)
 	reversed_replacements = []
 	if key in gt_identical:
@@ -123,10 +112,8 @@ for key in original.keys():
 		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Reversing the translation yields the original string.'>{reversed_value}</span>")]
 	elif key in gt_reversible_artifacts:
 		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Reversing the translation yields the original string (plus Google Translate artifacts).'>{reversed_value}</span>")]
-	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Same':
-		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>{reversed_value}</span>")]
-	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Different':
-		reversed_replacements = diffs_to_replacements(reversed_value, meaning_analysis[key]['differences'])
+	elif key in low_distance_any:
+		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='{get_low_distance_message(key)}'>{reversed_value}</span>")]
 	reversed_value = apply_replacements(reversed_value, reversed_replacements)
 
 	# apply formatting

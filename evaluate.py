@@ -2,15 +2,14 @@
 This is what adds all the errors, warnings, etc. that you see in the table. More complex evaluations are done in separate files and imported here.
 """
 import datetime
-import html
 import json
 import os
 import re
 from langfiles import original, pending, old_translation
 from google_translate import forward, gt_identical, gt_reversible, gt_reversible_artifacts, gt_same_meaning
 from wiki_data import wiki_data
-from gpt_analyze_meaning import meaning_analysis
 from gpt_extract_mcnames import mcnames
+from gpt_embeddings import low_distance_any, get_low_distance_message
 import namefinder
 
 # define evals and helper functions
@@ -93,23 +92,11 @@ else:
 	add_info("_general_", gt_identical_message)
 add_info("_general_", f"{len(gt_same_meaning)} out of {len(pending)} translations ({len(gt_same_meaning) / len(pending) * 100:.2f}%) can be reversed with Google Translate.")
 
-# check meaning analysis
-for key in pending.keys():
-	if key not in meaning_analysis:
-		continue
-	if meaning_analysis[key]['meaning'] == 'Same':
-		add_good_sign(key, "ChatGPT thinks the reverse translation has the same meaning as the original.")
-	elif meaning_analysis[key]['meaning'] == 'Different':
-		differences = [diff for diff in meaning_analysis[key]['differences'] if 'impact' in diff and diff['impact'] != 'None']
-		if len(differences) == 0:
-			diff_string = "Supposed differences: "
-			diff_string += ", ".join(f'"{diff["difference"]}"' for diff in meaning_analysis[key]['differences'])
-			diff_string += ". ChatGPT thinks none of these differences have any impact on the meaning, but still concluded that the meaning is different. ¯\_(ツ)_/¯"
-			add_info(key, f"ChatGPT thinks the reverse translation has a <abbr title='{html.escape(diff_string)}'>different meaning</abbr> than the original, but its reasoning makes no sense.")
-		else:
-			diff_string = "Supposed differences: "
-			diff_string += ", ".join(f'"{diff["difference"]}" ({diff["impact"].lower()} impact)' for diff in differences)
-			add_warning(key, f"ChatGPT thinks the reverse translation has a <abbr title='{html.escape(diff_string)}'>different meaning</abbr> than the original.")
+# check embeddings
+low_distance_adjusted = low_distance_any - gt_same_meaning
+for key in low_distance_adjusted:
+	add_good_sign(key, get_low_distance_message(key))
+add_info("_general_", f"{len(low_distance_adjusted)} out of {len(pending)} translations ({len(low_distance_adjusted) / len(pending) * 100:.2f}%) have a low embedding distance.")
 
 # check extracted Minecraft names
 for key in pending.keys():
