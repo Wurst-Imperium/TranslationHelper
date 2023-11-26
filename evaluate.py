@@ -55,9 +55,11 @@ for key in original.keys():
 		add_error(key, "This string is still in English.")
 
 # check for strings that don't exist in the original
-for key in pending.keys():
-	if key not in original:
-		add_error(key, "This string does not exist in the original.")
+new_strings = pending.keys() - original.keys()
+for key in new_strings:
+	add_error(key, "This string does not exist in the original.")
+if len(new_strings) > 0:
+	add_error("_general_", f"The translation contains {len(new_strings)} strings that don't exist in the original.")
 
 # check order of strings
 original_keys_present_in_pending = [key for key in original.keys() if key in pending]
