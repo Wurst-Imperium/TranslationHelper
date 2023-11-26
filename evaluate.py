@@ -20,28 +20,24 @@ def add_error(key, message):
 		evals[key] = {"errors": []}
 	elif "errors" not in evals[key]:
 		evals[key]["errors"] = []
-	print(f"ERROR in {key}: {message}")
 	evals[key]["errors"].append(message)
 def add_warning(key, message):
 	if key not in evals:
 		evals[key] = {"warnings": []}
 	elif "warnings" not in evals[key]:
 		evals[key]["warnings"] = []
-	print(f"WARNING in {key}: {message}")
 	evals[key]["warnings"].append(message)
 def add_info(key, message):
 	if key not in evals:
 		evals[key] = {"info": []}
 	elif "info" not in evals[key]:
 		evals[key]["info"] = []
-	print(f"INFO in {key}: {message}")
 	evals[key]["info"].append(message)
 def add_good_sign(key, message):
 	if key not in evals:
 		evals[key] = {"good_signs": []}
 	elif "good_signs" not in evals[key]:
 		evals[key]["good_signs"] = []
-	print(f"GOOD SIGN in {key}: {message}")
 	evals[key]["good_signs"].append(message)
 
 # add timestamp
