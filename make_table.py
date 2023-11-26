@@ -5,7 +5,7 @@ import re
 import pandas as pd
 import html
 from langfiles import original, pending, langcode_short
-from google_translate import forward, reversed, forward_reverse
+from google_translate import reversed, gt_identical, gt_reversible, gt_reversible_artifacts
 from evaluate import evals
 from gpt_analyze_meaning import meaning_analysis
 from gpt_extract_mcnames import mcnames
@@ -117,12 +117,12 @@ for key in original.keys():
 	# format reverse translation based on meaning analysis
 	reversed_value = get_preformatted_translation(reversed, key)
 	reversed_replacements = []
-	if original.get(key, None) == reversed.get(key, None):
+	if key in gt_identical:
+		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='The translation is identical to Google Translate.'>{reversed_value}</span>")]
+	elif key in gt_reversible:
 		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Reversing the translation yields the original string.'>{reversed_value}</span>")]
-	elif forward_reverse.get(key, None) == reversed.get(key, None):
+	elif key in gt_reversible_artifacts:
 		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Reversing the translation yields the original string (plus Google Translate artifacts).'>{reversed_value}</span>")]
-	elif pending.get(key, None) == forward.get(key, None):
-		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='Meaning is probably the same because the translation is identical to Google Translate.'>{reversed_value}</span>")]
 	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Same':
 		reversed_replacements = [(0, len(reversed_value), f"<span class='good' title='ChatGPT thinks the reverse translation has the same meaning as the original.'>{reversed_value}</span>")]
 	elif meaning_analysis.get(key, {}).get('meaning', None) == 'Different':

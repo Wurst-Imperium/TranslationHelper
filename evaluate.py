@@ -7,7 +7,7 @@ import json
 import os
 import re
 from langfiles import original, pending, old_translation
-from google_translate import forward, reversed, forward_reverse
+from google_translate import forward, gt_identical, gt_reversible, gt_reversible_artifacts, gt_same_meaning
 from wiki_data import wiki_data
 from gpt_analyze_meaning import meaning_analysis
 from gpt_extract_mcnames import mcnames
@@ -78,20 +78,20 @@ for key in pending.keys():
 add_info("_general_", f"Original has {original_word_count} words, pending has {pending_word_count} words.")
 
 # check Google Translate results
-google_identical = 0
-for key in pending.keys():
-	if pending[key] == forward.get(key, None):
-		google_identical += 1
-		add_info(key, "This string is identical to Google Translate.")
-	if pending[key] != original[key]:
-		if original.get(key, None) == reversed[key]:
-			add_good_sign(key, "Reversing the translation yields the original string.")
-		elif forward_reverse.get(key, None) == reversed[key]:
-			add_good_sign(key, "Reversing the translation yields the original string (plus Google Translate artifacts).")
-if google_identical > len(pending) * 0.5:
-	add_warning("_general_", f"{google_identical} out of {len(pending)} strings ({google_identical / len(pending) * 100:.2f}%) are identical to Google Translate.")
+for key in gt_same_meaning:
+	if key in gt_identical:
+		add_info(key, "This translation is identical to Google Translate.")
+	elif key in gt_reversible:
+		add_good_sign(key, "Reversing the translation yields the original string.")
+	elif key in gt_reversible_artifacts:
+		add_good_sign(key, "Reversing the translation yields the original string (plus Google Translate artifacts).")
+num_gt_identical = len(gt_identical)
+gt_identical_message = f"{num_gt_identical} out of {len(pending)} translations ({num_gt_identical / len(pending) * 100:.2f}%) are identical to Google Translate."
+if num_gt_identical > len(pending) * 0.5:
+	add_warning("_general_", gt_identical_message)
 else:
-	add_info("_general_", f"{google_identical} out of {len(pending)} translations ({google_identical / len(pending) * 100:.2f}%) are identical to Google Translate.")
+	add_info("_general_", gt_identical_message)
+add_info("_general_", f"{len(gt_same_meaning)} out of {len(pending)} translations ({len(gt_same_meaning) / len(pending) * 100:.2f}%) can be reversed with Google Translate.")
 
 # check meaning analysis
 for key in pending.keys():

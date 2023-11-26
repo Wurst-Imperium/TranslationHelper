@@ -87,3 +87,19 @@ else:
 		forward_reverse = json.load(f)
 
 del original_mtime, pending_mtime
+
+gt_identical = set()
+gt_reversible = set()
+gt_reversible_artifacts = set()
+
+for key in original.keys():
+	if key not in pending:
+		continue
+	if pending[key].lower() == forward[key].lower():
+		gt_identical.add(key)
+	if original[key].lower() == reversed[key].lower():
+		gt_reversible.add(key)
+	if reversed[key].lower() == forward_reverse[key].lower():
+		gt_reversible_artifacts.add(key)
+
+gt_same_meaning = gt_identical | gt_reversible | gt_reversible_artifacts
