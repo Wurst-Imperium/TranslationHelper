@@ -67,6 +67,9 @@ def download_langfile_official(version, lang_code):
 		print(f"Successfully downloaded {lang_code}.json from official Mojang servers.")
 	else:
 		print(f"WARNING: Failed to download {lang_code}.json from official Mojang servers.")
+		print(f"URL: {lang_file_url}")
+		print(f"Status Code: {lang_file_response.status_code}")
+		print(f"Response Content: {lang_file_response.content}")
 
 def download_langfile_unofficial(version, lang_code):
 	check_lang_dir()
@@ -78,6 +81,9 @@ def download_langfile_unofficial(version, lang_code):
 		print(f"Successfully downloaded {lang_code}.json from InventivetalentDev.")
 	else:
 		print(f"WARNING: Failed to download {lang_code}.json from InventivetalentDev.")
+		print(f"URL: {url}")
+		print(f"Status Code: {response.status_code}")
+		print(f"Response Content: {response.content}")
 
 def download_langfile_wurst(lang_code):
 	check_lang_dir()
@@ -89,6 +95,9 @@ def download_langfile_wurst(lang_code):
 		print(f"Successfully downloaded {lang_code}.json from Wurst.")
 	# else:
 	# 	print(f"WARNING: Failed to download {lang_code}.json from Wurst.")
+	#	print(f"URL: {url}")
+	#	print(f"Status Code: {response.status_code}")
+	#	print(f"Response Content: {response.content}")
 
 def load_merged_langfile(language):
 	# download mc language file if it doesn't exist
