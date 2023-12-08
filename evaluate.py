@@ -173,7 +173,7 @@ for key in evals.keys():
 		error_count += len(evals[key]["errors"])
 	if "warnings" in evals[key]:
 		warning_count += len(evals[key]["warnings"])
-	if "errors" not in evals[key] and "warnings" not in evals[key]:
+	if "errors" not in evals[key] and "warnings" not in evals[key] and key in pending:
 		no_issues_count += 1
 add_info("_general_", f"{error_count} errors and {warning_count} warnings were found in total.")
 add_info("_general_", f"{no_issues_count} out of {len(pending)} strings ({no_issues_count / len(pending) * 100:.2f}%) have no issues.")
