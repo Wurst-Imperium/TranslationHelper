@@ -95,7 +95,7 @@ def apply_replacements(string, replacements):
 df = pd.DataFrame(columns=["Key", "Evaluation", "Pending", "Reverse-Translated", "Original"])
 
 # add rows to table
-for key in original.keys():
+for key in pending.keys():
 	evaluation_value = format_evaluation(key)
 	original_value = get_preformatted_translation(original, key)
 	pending_value = get_preformatted_translation(pending, key)
