@@ -1,6 +1,7 @@
 # Cache files
 __pycache__/
 cache/
+.venv/
 
 # Config files
 .env

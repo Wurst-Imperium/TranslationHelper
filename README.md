@@ -32,11 +32,12 @@ Be warned that this is an internal tool, so not much effort was put into making 
 
 1. Clone this repository.
 
-2. Install the dependencies:
+2. Create a venv with Python 3.12 and install the dependencies:
    ```bash
+   python -m venv .venv
+   source .venv/bin/activate
    pip install -r requirements.txt
    ```
-   (I use Python 3.10, but it should work with newer versions too.)
 
 3. Create a wiki data export in Wurst (open Navigator and search "WikiDataExport") and either put it in the root directory of this project or set the `WURST_FOLDER` environment variable to the path of your Wurst folder.
 
