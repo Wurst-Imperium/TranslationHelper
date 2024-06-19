@@ -4,4 +4,4 @@ pandas==2.2.2
 pycountry==24.6.1
 python-dotenv==1.0.1
 requests==2.32.3
-tqdm==4.66.3
+tqdm==4.66.4
