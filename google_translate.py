@@ -4,8 +4,7 @@ Does the forward and reverse translations using Google Translate. Only reverse i
 import json
 import os
 from tqdm import tqdm
-from googletrans import Translator
-import pycountry
+from googletrans import Translator, LANGUAGES
 from langfiles import original, pending, langcode_short
 
 translator = Translator()
@@ -15,7 +14,7 @@ if not os.path.exists('cache/google_translate'):
 	os.makedirs('cache/google_translate')
 
 def forward_translate(lang):
-	langname = pycountry.languages.get(alpha_2=lang).name
+	langname = LANGUAGES.get(lang).capitalize()
 	print(f"Google-translating en_us.json to {langname}...")
 	translations = {}
 	for key, value in tqdm(original.items()):
@@ -25,7 +24,7 @@ def forward_translate(lang):
 	return translations
 
 def reverse_translate_pending(lang):
-	langname = pycountry.languages.get(alpha_2=lang).name
+	langname = LANGUAGES.get(lang).capitalize()
 	print(f"Revere-translating pending.json from {langname}...")
 	translations = {}
 	for key, value in tqdm(pending.items()):
@@ -41,7 +40,7 @@ reverse-translated strings, because both sets should have the same Google
 Translate artifacts.
 """
 def reverse_translate_forward(forward, lang):
-	langname = pycountry.languages.get(alpha_2=lang).name
+	langname = LANGUAGES.get(lang).capitalize()
 	print(f"Revere-translating forward.json from {langname}...")
 	translations = {}
 	for key, value in tqdm(forward.items()):
