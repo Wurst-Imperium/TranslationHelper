@@ -30,7 +30,12 @@ with open('pending.json', encoding='utf-8') as f:
 # load langcode
 with open('pending_lang.txt', encoding='utf-8') as f:
 	langcode = f.read().strip()
-	langcode_short = langcode.split('_')[0]
+	if langcode == "zh_cn":
+		langcode_short = "zh-cn"
+	elif langcode == "zh_tw":
+		langcode_short = "zh-tw"
+	else:
+		langcode_short = langcode.split('_')[0]
 
 # try to download old translation
 if not os.path.isfile(f'cache/lang/wurst/{langcode}.json'):
