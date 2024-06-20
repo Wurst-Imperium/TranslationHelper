@@ -5,7 +5,6 @@ import json
 import os
 import time
 import re
-import traceback
 import requests
 import openai_cost
 import concurrent.futures
@@ -13,8 +12,8 @@ from tqdm import tqdm
 from langfiles import original, pending, langcode
 import i18n
 
-model = "gpt-3.5-turbo-0613"
-# model = "gpt-4-0613"
+model = "gpt-3.5-turbo-0125"
+# model = "gpt-4o-2024-05-13"
 seed = 1337
 MAX_RETRIES = 3
 MAX_WORKERS = 20
